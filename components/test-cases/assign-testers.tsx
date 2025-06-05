@@ -156,7 +156,7 @@ export function AssignTesters({ testCaseId, onAssigned }: AssignTestersProps) {
           </div>
         ) : (
           <>
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

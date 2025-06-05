@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDbConnection } from "@/lib/db"
 import { sign } from "jsonwebtoken"
+import bcrypt from "bcryptjs"
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,8 +55,15 @@ export async function POST(request: NextRequest) {
     const user = users[0]
     console.log("👤 User found:", { email: user.email, role: user.role })
 
-    // Simple password check for demo (bypass bcrypt issues)
-    const isValidPassword = password === "password123"
+    // So sánh password: nếu là hash bcrypt thì dùng bcrypt.compare, còn lại so sánh plain text
+    let isValidPassword = false
+    if (user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$")) {
+      // bcrypt hash
+      isValidPassword = await bcrypt.compare(password, user.password)
+    } else {
+      // plain text
+      isValidPassword = password === user.password
+    }
 
     if (!isValidPassword) {
       console.log("❌ Invalid password for user:", email)

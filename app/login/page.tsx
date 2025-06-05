@@ -75,7 +75,7 @@ function LoginContent() {
           <div className="space-y-2">
             <Input
               id="email"
-              placeholder="admin@testcase.com"
+              placeholder="Nhập email của bạn"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -85,7 +85,7 @@ function LoginContent() {
           <div className="space-y-2">
             <Input
               id="password"
-              placeholder="password123"
+              placeholder="Mật khẩu của bạn"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

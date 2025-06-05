@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Test Case Management System",
   description: "Hệ thống quản lý Test Case cho team QA",
-    generator: 'v0.dev'
+  generator: "v0.dev"
 }
 
 export default function RootLayout({

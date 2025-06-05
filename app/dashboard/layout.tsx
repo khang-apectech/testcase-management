@@ -9,7 +9,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <AuthGuard>
-      <div className="flex min-h-screen">
+      <div className="flex flex-col min-h-screen">
         {/* Mobile Navigation */}
         <div className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b bg-background px-4 lg:hidden">
           <MobileNav />
@@ -18,17 +18,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="hidden w-64 border-r bg-gray-100/40 lg:block dark:bg-gray-800/40">
-          <div className="sticky top-0 h-screen overflow-y-auto">
-            <Sidebar />
+        <div className="flex flex-1 min-h-0">
+          {/* Sidebar */}
+          <div className="hidden w-64 border-r bg-gray-100/40 lg:block dark:bg-gray-800/40">
+            <div className="sticky top-0 h-screen overflow-y-auto">
+              <Sidebar />
+            </div>
           </div>
-        </div>
-        
-        {/* Main content */}
-        <div className="flex-1 overflow-auto">
-          <div className="container mx-auto">
-            {children}
+          
+          {/* Main content */}
+          <div className="flex-1 overflow-auto w-full">
+            <div className="w-full">
+              {children}
+            </div>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { DashboardShell } from "@/components/dashboard/shell"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
 
 import {
   Table,
@@ -41,6 +42,10 @@ export default function TestCasesPage() {
   const [testCases, setTestCases] = useState<TestCase[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [hangMuc, setHangMuc] = useState<string>("all")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,58 +53,28 @@ export default function TestCasesPage() {
     } else if (!authLoading && user) {
       loadTestCases()
     }
-  }, [authLoading, user])
+    // eslint-disable-next-line
+  }, [authLoading, user, hangMuc, page, pageSize, searchTerm])
 
   async function loadTestCases() {
     try {
-      console.log("Fetching test cases...")
-      const response = await fetchWithAuth("/api/test-cases")
-      console.log("Response status:", response.status)
+      setLoading(true)
+      let url = `/api/test-cases?hang_muc=${hangMuc}&page=${page}&pageSize=${pageSize}`
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`
+      const response = await fetchWithAuth(url)
       const data = await response.json()
-      console.log("Response data:", data)
-
       if (response.ok) {
-        if (Array.isArray(data.testCases)) {
-          setTestCases(data.testCases)
-          console.log("Test cases loaded:", data.testCases)
-        } else {
-          console.error("Invalid data format - testCases is not an array:", data)
-          toast({
-            title: "Error",
-            description: "Invalid data format received from server",
-            variant: "destructive",
-          })
-        }
+        setTestCases(data.testCases)
+        setTotal(data.total)
       } else {
-        console.error("Failed to load test cases:", data.error)
-        toast({
-          title: "Error",
-          description: data.error || "Failed to load test cases",
-          variant: "destructive",
-        })
+        toast({ title: "Error", description: data.error || "Failed to load test cases", variant: "destructive" })
       }
     } catch (error) {
-      console.error("Error loading test cases:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load test cases",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Failed to load test cases", variant: "destructive" })
     } finally {
       setLoading(false)
     }
   }
-
-  const filteredTestCases = testCases.filter((testCase) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      testCase.hang_muc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      testCase.tinh_nang.toLowerCase().includes(searchTerm.toLowerCase())
-
-    return matchesSearch
-  })
-
-  console.log("Rendered test cases:", filteredTestCases)
 
   if (authLoading || (!user && !authLoading)) {
     return (
@@ -131,17 +106,29 @@ export default function TestCasesPage() {
             <Input
               placeholder="Tìm kiếm theo hạng mục hoặc tính năng..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1) }}
             />
+          </div>
+          <div>
+            <select
+              className="border rounded px-2 py-1"
+              value={hangMuc}
+              onChange={e => { setHangMuc(e.target.value); setPage(1) }}
+            >
+              <option value="all">Tất cả</option>
+              <option value="App">App</option>
+              <option value="CMS">CMS</option>
+            </select>
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Icons.spinner className="h-8 w-8 animate-spin" />
+          <div className="flex flex-col items-center justify-center py-16 gap-4 animate-fade-in">
+            <Icons.spinner className="h-12 w-12 animate-spin text-primary" />
+            <span className="text-muted-foreground text-lg font-medium">Đang tải dữ liệu...</span>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -162,8 +149,8 @@ export default function TestCasesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTestCases.length > 0 ? (
-                  filteredTestCases.map((testCase) => (
+                {testCases.length > 0 ? (
+                  testCases.map((testCase) => (
                     <TableRow key={testCase.id}>
                       <TableCell>{testCase.hang_muc}</TableCell>
                       <TableCell className="max-w-md">
@@ -247,6 +234,42 @@ export default function TestCasesPage() {
             </Table>
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4">
+          <div>
+            <span>
+              Trang {page} / {Math.ceil(total / pageSize) || 1} (Tổng: {total})
+            </span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Trước
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= Math.ceil(total / pageSize)}
+              onClick={() => setPage(page + 1)}
+            >
+              Sau
+            </Button>
+            <select
+              className="border rounded px-2 py-1 ml-2"
+              value={pageSize}
+              onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+            >
+              {[5, 10, 20, 50].map(size => (
+                <option key={size} value={size}>{size}/trang</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
     </DashboardShell>
   )

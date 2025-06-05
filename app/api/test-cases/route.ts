@@ -18,8 +18,30 @@ export async function GET(request: NextRequest) {
     const sql = await getDbConnection()
     console.log("Database connected")
 
-    let testCases
+    // Lấy query params
+    const { searchParams } = new URL(request.url)
+    const hangMuc = searchParams.get("hang_muc") // "App", "CMS", hoặc null
+    const search = searchParams.get("search")?.trim() || ""
+    const page = parseInt(searchParams.get("page") || "1", 10)
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10)
+    const offset = (page - 1) * pageSize
+
+    let whereSql = sql``
+    if (hangMuc && hangMuc !== "all") {
+      whereSql = sql`${whereSql} AND tc.hang_muc LIKE ${hangMuc + '%'} `
+    }
+    if (search) {
+      whereSql = sql`${whereSql} AND (LOWER(tc.hang_muc) LIKE ${'%' + search.toLowerCase() + '%'} OR LOWER(tc.tinh_nang) LIKE ${'%' + search.toLowerCase() + '%'}) `
+    }
+
+    let testCases, totalCount
     if (currentUser.role === "admin") {
+      // Đếm tổng số
+      const totalRes = await sql`
+        SELECT COUNT(*) FROM test_cases tc WHERE 1=1 ${whereSql}
+      `
+      totalCount = Number(totalRes[0].count)
+      // Query phân trang
       testCases = await sql`
         SELECT 
           tc.*,
@@ -32,10 +54,21 @@ export async function GET(request: NextRequest) {
         LEFT JOIN test_executions te ON te.test_case_id = tc.id
         LEFT JOIN user_test_assignments uta ON uta.test_case_id = tc.id
         LEFT JOIN users u ON u.id = uta.user_id
+        WHERE 1=1 ${whereSql}
         GROUP BY tc.id
         ORDER BY tc.created_at DESC
+        LIMIT ${pageSize} OFFSET ${offset}
       `
     } else {
+      // Đếm tổng số
+      const totalRes = await sql`
+        SELECT COUNT(*) FROM test_cases tc 
+        WHERE tc.id IN (
+          SELECT test_case_id FROM user_test_assignments WHERE user_id = ${currentUser.id}
+        ) ${whereSql}
+      `
+      totalCount = Number(totalRes[0].count)
+      // Query phân trang
       testCases = await sql`
         SELECT 
           tc.*,
@@ -48,9 +81,10 @@ export async function GET(request: NextRequest) {
         LEFT JOIN users u ON u.id = uta.user_id
         WHERE tc.id IN (
           SELECT test_case_id FROM user_test_assignments WHERE user_id = ${currentUser.id}
-        )
+        ) ${whereSql}
         GROUP BY tc.id
         ORDER BY tc.created_at DESC
+        LIMIT ${pageSize} OFFSET ${offset}
       `
       // Lấy số lần đã test của user hiện tại cho từng test case
       const myExecutions = await sql`
@@ -64,7 +98,7 @@ export async function GET(request: NextRequest) {
     }
     console.log("Query executed, test cases:", testCases)
 
-    return NextResponse.json({ testCases })
+    return NextResponse.json({ testCases, total: totalCount, page, pageSize })
   } catch (error) {
     console.error("Get test cases error:", error)
     return NextResponse.json(

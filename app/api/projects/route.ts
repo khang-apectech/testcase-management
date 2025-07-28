@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const user = await getCurrentUser(token)
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
     
     const sql = await getDbConnection()
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error fetching projects:", error)
     return NextResponse.json(
-      { error: "Failed to fetch projects" },
+      { error: "Không thể tải danh sách dự án" },
       { status: 500 }
     )
   }
@@ -52,12 +52,12 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser(token)
     
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
     
     if (user.role !== "admin") {
       return NextResponse.json(
-        { error: "Only admins can create projects" },
+        { error: "Chỉ admin mới có thể tạo dự án" },
         { status: 403 }
       )
     }
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     
     if (!name || name.trim() === "") {
       return NextResponse.json(
-        { error: "Project name is required" },
+        { error: "Tên dự án là bắt buộc" },
         { status: 400 }
       )
     }

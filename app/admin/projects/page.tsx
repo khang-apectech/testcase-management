@@ -68,7 +68,7 @@ export default function AdminProjectsPage() {
   const paginatedProjects = filteredProjects.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return <div className="flex justify-center p-8">Đang tải...</div>;
   }
 
   return (

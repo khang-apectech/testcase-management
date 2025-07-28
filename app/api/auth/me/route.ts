@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     console.log("🎫 Token found:", !!token)
 
     if (!token) {
-      return NextResponse.json({ error: "No token provided" }, { status: 401 })
+      return NextResponse.json({ error: "Không có token được cung cấp" }, { status: 401 })
     }
 
     // Import auth function
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       console.log("❌ Invalid or expired token")
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+      return NextResponse.json({ error: "Token không hợp lệ" }, { status: 401 })
     }
 
     console.log("✅ User authenticated:", user.email)
@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     console.error("💥 Auth check error:", error)
     return NextResponse.json(
       {
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: "Lỗi server nội bộ",
+        details: error instanceof Error ? error.message : "Lỗi không xác định",
       },
       { status: 500 },
     )

@@ -13,14 +13,14 @@ export async function POST(request: NextRequest) {
       body = await request.json()
     } catch (parseError) {
       console.error("❌ Failed to parse request body:", parseError)
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+      return NextResponse.json({ error: "Dữ liệu yêu cầu không hợp lệ" }, { status: 400 })
     }
 
     const { email, password } = body
     console.log("📧 Login attempt for:", email)
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+      return NextResponse.json({ error: "Email và mật khẩu là bắt buộc" }, { status: 400 })
     }
 
     // Get database connection
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       console.log("✅ Database connection established")
     } catch (dbError) {
       console.error("❌ Database connection failed:", dbError)
-      return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
+      return NextResponse.json({ error: "Kết nối cơ sở dữ liệu thất bại" }, { status: 500 })
     }
 
     // Query user from database
@@ -44,12 +44,12 @@ export async function POST(request: NextRequest) {
       console.log("👥 Users found:", users.length)
     } catch (queryError) {
       console.error("❌ Database query failed:", queryError)
-      return NextResponse.json({ error: "Database query failed" }, { status: 500 })
+      return NextResponse.json({ error: "Truy vấn cơ sở dữ liệu thất bại" }, { status: 500 })
     }
 
     if (users.length === 0) {
       console.log("❌ No user found with email:", email)
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
+      return NextResponse.json({ error: "Email hoặc mật khẩu không đúng" }, { status: 401 })
     }
 
     const user = users[0]
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValidPassword) {
       console.log("❌ Invalid password for user:", email)
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
+      return NextResponse.json({ error: "Email hoặc mật khẩu không đúng" }, { status: 401 })
     }
 
     console.log("✅ Password verified for user:", email)
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     try {
       if (!process.env.JWT_SECRET) {
         console.error("❌ JWT_SECRET not found")
-        return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+        return NextResponse.json({ error: "Lỗi cấu hình server" }, { status: 500 })
       }
 
       token = sign(
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       console.log("✅ JWT token generated")
     } catch (tokenError) {
       console.error("❌ Token generation failed:", tokenError)
-      return NextResponse.json({ error: "Token generation failed" }, { status: 500 })
+      return NextResponse.json({ error: "Tạo token thất bại" }, { status: 500 })
     }
 
     // Return response with token and user info
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     console.error("❌ Login error:", error)
     return NextResponse.json(
       { 
-        error: "Internal server error",
+        error: "Lỗi server nội bộ",
         details: error instanceof Error ? error.message : String(error)
       }, 
       { status: 500 }

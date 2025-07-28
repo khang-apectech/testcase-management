@@ -36,7 +36,7 @@ export function BreadcrumbNav({ projectId, projectName = "Project" }: Breadcrumb
       switch (section) {
         case 'testcase':
           breadcrumbs.push({
-            label: 'Test Cases',
+            label: 'Danh sách Test Case',
             href: `/project/${projectId}/testcase`,
             icon: TestTube
           })
@@ -45,7 +45,7 @@ export function BreadcrumbNav({ projectId, projectName = "Project" }: Breadcrumb
           if (pathSegments[3] && pathSegments[3] !== 'new') {
             const testCaseId = pathSegments[3]
             breadcrumbs.push({
-              label: `Test Case`,
+              label: `Chi tiết Test Case`,
               href: `/project/${projectId}/testcase/${testCaseId}`,
               icon: FileText
             })
@@ -56,43 +56,56 @@ export function BreadcrumbNav({ projectId, projectName = "Project" }: Breadcrumb
               switch (action) {
                 case 'edit':
                   breadcrumbs.push({
-                    label: 'Edit',
+                    label: 'Chỉnh sửa',
                     icon: Edit
                   })
                   break
                 case 'execute':
                   breadcrumbs.push({
-                    label: 'Execute',
+                    label: 'Thực thi',
                     icon: Play
+                  })
+                  break
+                case 'stats':
+                  breadcrumbs.push({
+                    label: 'Thống kê',
+                    icon: BarChart3
                   })
                   break
               }
             }
           } else if (pathSegments[3] === 'new') {
             breadcrumbs.push({
-              label: 'New Test Case',
+              label: 'Tạo Test Case mới',
               icon: Plus
             })
           }
           break
           
-        case 'testers':
+        case 'tester':
           breadcrumbs.push({
-            label: 'Testers',
+            label: 'Quản lý Tester',
             icon: Users
           })
           break
           
-        case 'reports':
+        case 'report':
           breadcrumbs.push({
-            label: 'Reports',
+            label: 'Báo cáo',
+            icon: BarChart3
+          })
+          break
+          
+        case 'dashboard':
+          breadcrumbs.push({
+            label: 'Tổng quan',
             icon: BarChart3
           })
           break
           
         case 'settings':
           breadcrumbs.push({
-            label: 'Settings',
+            label: 'Cài đặt',
             icon: Settings
           })
           break

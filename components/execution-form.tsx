@@ -107,16 +107,16 @@ export function ExecutionForm({ projectId, testCase }: ExecutionFormProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="status">Execution Status *</Label>
+                <Label htmlFor="status">Trạng thái thực thi *</Label>
                 <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select execution result" />
+                    <SelectValue placeholder="Chọn kết quả thực thi" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="passed">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
-                        Passed
+                        Thành công
                       </div>
                     </SelectItem>
                     <SelectItem value="failed">
@@ -141,7 +141,7 @@ export function ExecutionForm({ projectId, testCase }: ExecutionFormProps) {
                   id="actual_result"
                   value={formData.actual_result}
                   onChange={(e) => handleChange('actual_result', e.target.value)}
-                  placeholder="Describe what actually happened when you executed the test"
+                  placeholder="Mô tả những gì thực sự xảy ra khi bạn thực thi test"
                   rows={4}
                 />
               </div>
@@ -152,7 +152,7 @@ export function ExecutionForm({ projectId, testCase }: ExecutionFormProps) {
                   id="comments"
                   value={formData.comments}
                   onChange={(e) => handleChange('comments', e.target.value)}
-                  placeholder="Add any additional notes, observations, or details about the test execution"
+                  placeholder="Thêm ghi chú, quan sát hoặc chi tiết bổ sung về việc thực thi test"
                   rows={3}
                 />
               </div>
@@ -164,7 +164,7 @@ export function ExecutionForm({ projectId, testCase }: ExecutionFormProps) {
                     id="bug_report"
                     value={formData.bug_report}
                     onChange={(e) => handleChange('bug_report', e.target.value)}
-                    placeholder="Describe the bug or issue found. Include steps to reproduce, error messages, screenshots, etc."
+                    placeholder="Mô tả lỗi hoặc vấn đề phát hiện. Bao gồm các bước tái tạo, thông báo lỗi, ảnh chụp màn hình, v.v."
                     rows={4}
                   />
                 </div>

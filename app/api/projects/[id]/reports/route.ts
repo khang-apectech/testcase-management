@@ -39,12 +39,12 @@ export async function GET(
       SELECT 
         COUNT(DISTINCT tc.id) as totalTestCases,
         COUNT(DISTINCT CASE WHEN te.id IS NOT NULL THEN tc.id END) as executedTestCases,
-        COUNT(te.id) as totalExecutions,
-        COUNT(CASE WHEN te.loi IS NULL OR te.loi = '' THEN 1 END) as passedExecutions,
-        COUNT(CASE WHEN te.loi IS NOT NULL AND te.loi != '' THEN 1 END) as failedExecutions,
+        COUNT(CASE WHEN te.id IS NOT NULL THEN 1 END) as totalExecutions,
+        COUNT(CASE WHEN te.id IS NOT NULL AND (te.loi IS NULL OR te.loi = '') THEN 1 END) as passedExecutions,
+        COUNT(CASE WHEN te.id IS NOT NULL AND te.loi IS NOT NULL AND te.loi != '' THEN 1 END) as failedExecutions,
         CASE 
-          WHEN COUNT(te.id) > 0 
-          THEN ROUND(COUNT(CASE WHEN te.loi IS NULL OR te.loi = '' THEN 1 END) * 100.0 / COUNT(te.id), 1)
+          WHEN COUNT(CASE WHEN te.id IS NOT NULL THEN 1 END) > 0 
+          THEN ROUND(COUNT(CASE WHEN te.id IS NOT NULL AND (te.loi IS NULL OR te.loi = '') THEN 1 END) * 100.0 / COUNT(CASE WHEN te.id IS NOT NULL THEN 1 END), 1)
           ELSE 0 
         END as passRate
       FROM test_cases tc
@@ -89,7 +89,11 @@ export async function GET(
       ORDER BY tc.platform
     `
 
-    return NextResponse.json({
+    console.log("📊 Raw summary data:", summary[0])
+    console.log("📊 Recent executions count:", recentExecutions.length)
+    console.log("📊 Coverage data:", coverage)
+
+    const result = {
       summary: summary[0] ? {
         totalTestCases: summary[0].totaltestcases || 0,
         executedTestCases: summary[0].executedtestcases || 0,
@@ -107,7 +111,10 @@ export async function GET(
       },
       recentExecutions: recentExecutions || [],
       coverage: coverage || []
-    })
+    }
+
+    console.log("📊 Final result:", JSON.stringify(result, null, 2))
+    return NextResponse.json(result)
   } catch (error) {
     console.error("❌ Error getting reports:", error)
     return NextResponse.json(

@@ -69,7 +69,7 @@ export default function EditTestCasePage({ params }: EditTestCasePageProps) {
         </div>
       </div>
 
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <TestCaseForm 
           projectId={project_id} 
           testCase={testCase}

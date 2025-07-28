@@ -46,13 +46,32 @@ export async function GET(
           tc.*,
           COUNT(DISTINCT te.id) as total_executions,
           COUNT(DISTINCT uta.user_id) as assigned_tester_count,
-          STRING_AGG(DISTINCT u.name, ', ') as assigned_tester_names
+          STRING_AGG(DISTINCT u.name, ', ') as assigned_tester_names,
+          COUNT(CASE WHEN te.loi IS NULL OR te.loi = '' THEN 1 END) as passed_executions,
+          COUNT(CASE WHEN te.loi IS NOT NULL AND te.loi != '' THEN 1 END) as failed_executions,
+          latest_execution.status as status,
+          CASE 
+            WHEN COUNT(DISTINCT te.id) = 0 THEN 'not_executed'
+            WHEN latest_execution.status = 'passed' THEN 'passed'
+            WHEN latest_execution.status = 'failed' THEN 'failed'
+            ELSE 'pending'
+          END as current_status
         FROM test_cases tc
         LEFT JOIN test_executions te ON te.test_case_id = tc.id
         LEFT JOIN user_test_assignments uta ON tc.id = uta.test_case_id
         LEFT JOIN users u ON uta.user_id = u.id
+        LEFT JOIN (
+          SELECT DISTINCT ON (test_case_id) 
+            test_case_id,
+            CASE 
+              WHEN loi IS NULL OR loi = '' THEN 'passed'
+              ELSE 'failed'
+            END as status
+          FROM test_executions 
+          ORDER BY test_case_id, execution_date DESC
+        ) latest_execution ON tc.id = latest_execution.test_case_id
         WHERE tc.project_id = ${projectId}
-        GROUP BY tc.id
+        GROUP BY tc.id, latest_execution.status
         ORDER BY tc.created_at DESC
       `
     } else {
@@ -61,14 +80,33 @@ export async function GET(
         SELECT 
           tc.*,
           COUNT(DISTINCT te.id) as total_executions,
-          COUNT(DISTINCT uta2.user_id) as assigned_tester_count
+          COUNT(DISTINCT uta2.user_id) as assigned_tester_count,
+          COUNT(CASE WHEN te.loi IS NULL OR te.loi = '' THEN 1 END) as passed_executions,
+          COUNT(CASE WHEN te.loi IS NOT NULL AND te.loi != '' THEN 1 END) as failed_executions,
+          latest_execution.status as status,
+          CASE 
+            WHEN COUNT(DISTINCT te.id) = 0 THEN 'not_executed'
+            WHEN latest_execution.status = 'passed' THEN 'passed'
+            WHEN latest_execution.status = 'failed' THEN 'failed'
+            ELSE 'pending'
+          END as current_status
         FROM test_cases tc
         LEFT JOIN test_executions te ON te.test_case_id = tc.id
         LEFT JOIN user_test_assignments uta2 ON tc.id = uta2.test_case_id
         JOIN user_test_assignments uta ON tc.id = uta.test_case_id
+        LEFT JOIN (
+          SELECT DISTINCT ON (test_case_id) 
+            test_case_id,
+            CASE 
+              WHEN loi IS NULL OR loi = '' THEN 'passed'
+              ELSE 'failed'
+            END as status
+          FROM test_executions 
+          ORDER BY test_case_id, execution_date DESC
+        ) latest_execution ON tc.id = latest_execution.test_case_id
         WHERE tc.project_id = ${projectId} 
         AND uta.user_id = ${user.id}
-        GROUP BY tc.id
+        GROUP BY tc.id, latest_execution.status
         ORDER BY tc.created_at DESC
       `
     }

@@ -14,31 +14,31 @@ export function ProjectNavTabs({ projectId }: ProjectNavTabsProps) {
 
   const tabs = [
     {
-      name: 'Dashboard',
+      name: 'Tổng quan',
       href: `/project/${projectId}/dashboard`,
       icon: Home,
       current: pathname === `/project/${projectId}/dashboard`
     },
     {
-      name: 'Test Cases',  
+      name: 'Test Case',  
       href: `/project/${projectId}/testcase`,
       icon: TestTube,
       current: pathname.startsWith(`/project/${projectId}/testcase`)
     },
     {
-      name: 'Testers',
+      name: 'Tester',
       href: `/project/${projectId}/tester`,
       icon: Users,
       current: pathname.startsWith(`/project/${projectId}/tester`)
     },
     {
-      name: 'Reports',
+      name: 'Báo cáo',
       href: `/project/${projectId}/report`,
       icon: BarChart3,
       current: pathname === `/project/${projectId}/report`
     },
     {
-      name: 'Settings',
+      name: 'Cài đặt',
       href: `/project/${projectId}/settings`,
       icon: Settings,
       current: pathname === `/project/${projectId}/settings`

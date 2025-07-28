@@ -102,15 +102,15 @@ export function TestCaseForm({ projectId, testCase, isEditing = false }: TestCas
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">Độ ưu tiên</Label>
               <Select value={formData.priority} onValueChange={(value) => handleChange('priority', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder="Chọn độ ưu tiên" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">Thấp</SelectItem>
+                  <SelectItem value="medium">Trung bình</SelectItem>
+                  <SelectItem value="high">Cao</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -164,16 +164,16 @@ export function TestCaseForm({ projectId, testCase, isEditing = false }: TestCas
 
           {isEditing && (
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">Trạng thái</Label>
               <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="not_executed">Not Executed</SelectItem>
-                  <SelectItem value="passed">Passed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="not_executed">Chưa thực thi</SelectItem>
+                  <SelectItem value="passed">Thành công</SelectItem>
+                  <SelectItem value="failed">Thất bại</SelectItem>
+                  <SelectItem value="in_progress">Đang thực hiện</SelectItem>
                 </SelectContent>
               </Select>
             </div>

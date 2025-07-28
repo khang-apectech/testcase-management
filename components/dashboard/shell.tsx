@@ -1,3 +1,5 @@
+import React from "react"
+
 interface DashboardShellProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function DashboardShell({

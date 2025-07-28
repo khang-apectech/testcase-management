@@ -26,14 +26,26 @@ export type User = {
   created_at: string
 }
 
+export type Project = {
+  id: string
+  name: string
+  description: string
+  created_by: string
+  created_at: string
+  updated_at: string
+  updated_by: string
+}
+
 export type TestCase = {
   id: string
   hang_muc: string // Hạng mục
   tinh_nang: string // Tính năng
   so_lan_phai_test: number // Số lần phải test (admin quy định)
+  platform: string // Platform: web, app, cms, server
   created_by: string
   created_at: string
   updated_at: string
+  project_id: string // ID của dự án
 }
 
 export type TestExecution = {
@@ -51,10 +63,24 @@ export type TestExecution = {
   tinh_nang?: string
   so_lan_phai_test?: number
   tester_name?: string
+  project_id?: string
+  project_name?: string
 }
 
 export type TestCaseWithExecution = TestCase & {
   latest_execution?: TestExecution
   assigned_to_current_user?: boolean
   progress_percentage?: number // Tỷ lệ hoàn thành (so_lan_da_test / so_lan_phai_test * 100)
+  project_name?: string
+}
+
+export type UserProjectAccess = {
+  id: string
+  user_id: string
+  project_id: string
+  granted_at: string
+  granted_by: string
+  // Joined fields
+  project_name?: string
+  user_name?: string
 }

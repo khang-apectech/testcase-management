@@ -17,9 +17,16 @@ export async function GET(request: NextRequest) {
     const sql = await getDbConnection()
     console.log("✅ Database connected")
 
+    // Lấy project_id từ query params
+    const { searchParams } = new URL(request.url)
+    const projectId = searchParams.get("project_id")
+    console.log("Project ID from params:", projectId)
+
     try {
       // Get time-based stats
-      const [dailyStats, weeklyStats, monthlyStats] = await Promise.all([
+      let dailyStats, weeklyStats, monthlyStats
+      if (projectId) {
+        [dailyStats, weeklyStats, monthlyStats] = await Promise.all([
         // Daily stats (last 30 days)
         sql`
           WITH dates AS (
@@ -80,6 +87,12 @@ export async function GET(request: NextRequest) {
           ORDER BY months.month
         `
       ])
+      } else {
+        // Default empty stats if no project ID
+        dailyStats = []
+        weeklyStats = []
+        monthlyStats = []
+      }
 
       // Get category stats
       const categoryStats = await sql`
@@ -234,4 +247,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-} 
+}

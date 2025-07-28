@@ -87,7 +87,7 @@ export async function GET(
         u.name,
         u.email,
         COUNT(te.id) as total_executions,
-        COUNT(CASE WHEN te.loi != '' THEN te.id END) as total_issues
+        COUNT(CASE WHEN te.loi != '' AND te.loi IS NOT NULL THEN te.id END) as total_issues
       FROM user_test_assignments uta
       JOIN users u ON u.id = uta.user_id
       LEFT JOIN test_executions te ON te.test_case_id = uta.test_case_id AND te.tester_id = u.id

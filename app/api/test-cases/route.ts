@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const hangMuc = searchParams.get("hang_muc") // "App", "CMS", hoặc null
     const search = searchParams.get("search")?.trim() || ""
+    const projectId = searchParams.get("project_id") || null
     const page = parseInt(searchParams.get("page") || "1", 10)
     const pageSize = parseInt(searchParams.get("pageSize") || "10", 10)
     const offset = (page - 1) * pageSize
@@ -32,6 +33,9 @@ export async function GET(request: NextRequest) {
     }
     if (search) {
       whereSql = sql`${whereSql} AND (LOWER(tc.hang_muc) LIKE ${'%' + search.toLowerCase() + '%'} OR LOWER(tc.tinh_nang) LIKE ${'%' + search.toLowerCase() + '%'}) `
+    }
+    if (projectId) {
+      whereSql = sql`${whereSql} AND tc.project_id = ${projectId} `
     }
 
     let testCases, totalCount
@@ -132,12 +136,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
     }
     
-    const { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority } = body
-    console.log("Parsed fields:", { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority })
+    const { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority, project_id } = body
+    console.log("Parsed fields:", { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority, project_id })
 
-    if (!hang_muc || !tinh_nang || !so_lan_phai_test || !mo_ta || !priority) {
-      console.log("❌ Missing required fields:", { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority })
+    if (!hang_muc || !tinh_nang || !so_lan_phai_test || !mo_ta || !priority || !project_id) {
+      console.log("❌ Missing required fields:", { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority, project_id })
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+    
+    // Kiểm tra xem người dùng có quyền truy cập dự án không
+    const hasAccess = await sql`
+      SELECT 1 FROM user_project_access
+      WHERE user_id = ${currentUser.id} AND project_id = ${project_id}
+    `
+    if (hasAccess.length === 0 && currentUser.role !== 'admin') {
+      return NextResponse.json({ error: "You don't have access to this project" }, { status: 403 })
     }
 
     const sql = await getDbConnection()
@@ -155,7 +168,8 @@ export async function POST(request: NextRequest) {
           created_by,
           updated_by,
           created_at,
-          updated_at
+          updated_at,
+          project_id
         )
         VALUES (
           ${hang_muc}, 
@@ -166,7 +180,8 @@ export async function POST(request: NextRequest) {
           ${currentUser.id},
           ${currentUser.id},
           NOW(),
-          NOW()
+          NOW(),
+          ${project_id}
         )
         RETURNING *
       `

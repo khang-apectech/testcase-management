@@ -11,6 +11,8 @@ import {
   Trash,
   Loader2,
   LogOut,
+  Briefcase,
+  Activity,
   type Icon as LucideIcon,
 } from "lucide-react"
 
@@ -29,4 +31,6 @@ export const Icons = {
   delete: Trash,
   spinner: Loader2,
   logout: LogOut,
+  project: Briefcase,
+  activity: Activity,
 } 

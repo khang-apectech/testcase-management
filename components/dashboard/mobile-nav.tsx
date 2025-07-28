@@ -18,27 +18,27 @@ export function MobileNav() {
 
   const adminRoutes = [
     {
-      href: "/dashboard",
+      href: "/",
       icon: Icons.home,
       title: "Trang chủ",
     },
     {
-      href: "/dashboard/test-cases",
-      icon: Icons.testCase,
-      title: "Test Cases",
-    },
-    {
-      href: "/dashboard/users",
+      href: "/admin/testers",
       icon: Icons.users,
       title: "Người dùng",
     },
+    {
+      href: "/admin/projects",
+      icon: Icons.project,
+      title: "Dự án",
+    },
     // {
-    //   href: "/dashboard/stats",
+    //   href: "/admin/stats",
     //   icon: Icons.stats,
     //   title: "Thống kê",
     // },
     // {
-    //   href: "/dashboard/settings",
+    //   href: "/admin/settings",
     //   icon: Icons.settings,
     //   title: "Cài đặt",
     // },
@@ -46,14 +46,9 @@ export function MobileNav() {
 
   const testerRoutes = [
     {
-      href: "/dashboard",
+      href: "/",
       icon: Icons.home,
       title: "Trang chủ",
-    },
-    {
-      href: "/dashboard/test-cases",
-      icon: Icons.testCase,
-      title: "Test Cases",
     },
   ]
 

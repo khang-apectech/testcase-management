@@ -36,6 +36,13 @@ export type Project = {
   updated_by: string
 }
 
+export type ProjectWithStats = Project & {
+  test_cases_count: number
+  testers_count: number
+  executions_count: number
+  pass_rate: number
+}
+
 export type TestCase = {
   id: string
   hang_muc: string // Hạng mục

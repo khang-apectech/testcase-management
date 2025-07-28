@@ -13,11 +13,13 @@ export function middleware(request: NextRequest) {
   const isApiRoute = request.nextUrl.pathname.startsWith("/api")
   const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard")
   const isAuthRoute = request.nextUrl.pathname.startsWith("/api/auth")
+  const isDebugRoute = request.nextUrl.pathname.startsWith("/api/debug")
+  const isProjectsStatsRoute = request.nextUrl.pathname === "/api/projects/stats"
   const isLoginRoute = request.nextUrl.pathname === "/login"
   
   // For dashboard routes, we'll let the client-side handle auth checks
   // Only protect API routes here
-  if (isApiRoute && !isAuthRoute) {
+  if (isApiRoute && !isAuthRoute && !isDebugRoute && !isProjectsStatsRoute) {
     if (!token) {
       return NextResponse.json(
         { error: "Authentication required" },

@@ -28,7 +28,8 @@ function LoginContent() {
   // Check if user is already logged in
   useEffect(() => {
     if (user) {
-      const from = searchParams.get("from") || "/dashboard/test-cases"
+      const from = searchParams.get("from") || "/"
+      console.log("🔄 Login redirect to:", from);
       router.push(from)
     }
   }, [user, router, searchParams])
@@ -39,8 +40,9 @@ function LoginContent() {
 
     try {
       await login(email, password)
-      // Redirect to original destination or dashboard
-      const from = searchParams.get("from") || "/dashboard/test-cases"
+      // Redirect to original destination or home (will trigger project selection)
+      const from = searchParams.get("from") || "/"
+      console.log("🚀 Login success, redirect to:", from);
       router.push(from)
       toast({
         title: "Thành công",

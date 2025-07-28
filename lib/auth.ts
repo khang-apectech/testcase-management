@@ -51,3 +51,25 @@ export function getTokenFromRequest(request: NextRequest): string | undefined {
   const tokenFromCookie = request.cookies.get("token")?.value
   return tokenFromHeader || tokenFromCookie
 }
+
+export async function verifyAuth(request: NextRequest) {
+  try {
+    const token = getTokenFromRequest(request)
+    if (!token) {
+      return { success: false, error: "Unauthorized - No token provided" }
+    }
+    
+    const user = await getCurrentUser(token)
+    if (!user) {
+      return { success: false, error: "Unauthorized - Invalid token" }
+    }
+    
+    return { success: true, user }
+  } catch (error) {
+    console.error("Auth verification error:", error)
+    return { 
+      success: false, 
+      error: "Authentication error: " + (error instanceof Error ? error.message : String(error))
+    }
+  }
+}

@@ -40,10 +40,11 @@ interface Assignment {
 
 interface AssignTestersProps {
   testCaseId: string
+  projectId: string
   onAssigned?: () => void
 }
 
-export function AssignTesters({ testCaseId, onAssigned }: AssignTestersProps) {
+export function AssignTesters({ testCaseId, projectId, onAssigned }: AssignTestersProps) {
   const { toast } = useToast()
   const { fetchWithAuth } = useAuth()
   const [open, setOpen] = useState(false)
@@ -62,24 +63,25 @@ export function AssignTesters({ testCaseId, onAssigned }: AssignTestersProps) {
   async function loadData() {
     setLoading(true)
     try {
-      // Load users
-      const usersResponse = await fetchWithAuth("/api/users")
+      // Load available testers for this test case (testers assigned to project)
+      const usersResponse = await fetchWithAuth(`/api/test-cases/${testCaseId}/available-testers`)
       const usersData = await usersResponse.json()
       if (usersResponse.ok) {
-        setUsers(usersData.users.filter((user: User) => user.role === "tester"))
+        setUsers(usersData.users || [])
       }
 
-      // Load current assignments
+      // Load current assignments for this test case
       const assignmentsResponse = await fetchWithAuth(`/api/test-cases/${testCaseId}/assign`)
       const assignmentsData = await assignmentsResponse.json()
       if (assignmentsResponse.ok) {
-        setAssignments(assignmentsData.assignments)
-        setSelectedUsers(assignmentsData.assignments.map((a: Assignment) => a.id))
+        setAssignments(assignmentsData.assignments || [])
+        setSelectedUsers(assignmentsData.assignments?.map((a: Assignment) => a.id) || [])
       }
     } catch (error) {
+      console.error("Load data error:", error)
       toast({
-        title: "Error",
-        description: "Failed to load data",
+        title: "Lỗi",
+        description: "Không thể tải dữ liệu",
         variant: "destructive",
       })
     } finally {
@@ -102,23 +104,23 @@ export function AssignTesters({ testCaseId, onAssigned }: AssignTestersProps) {
       const data = await response.json()
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Testers assigned successfully",
+          title: "Thành công",
+          description: "Đã phân công tester thành công",
         })
         setAssignments(data.assignments)
         setOpen(false)
         if (onAssigned) onAssigned()
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to assign testers",
+          title: "Lỗi",
+          description: data.error || "Không thể phân công tester",
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to assign testers",
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi khi phân công tester",
         variant: "destructive",
       })
     } finally {

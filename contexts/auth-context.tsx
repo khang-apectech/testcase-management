@@ -8,6 +8,8 @@ import type { User } from "@/lib/db"
 interface AuthContextType {
   user: User | null
   loading: boolean
+  selectedProject: { id: string; name: string } | null
+  setSelectedProject: (project: { id: string; name: string } | null) => void
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
@@ -19,6 +21,57 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedProject, setSelectedProject] = useState<{ id: string; name: string } | null>(null)
+  
+  // Custom setter for selectedProject that also updates localStorage
+  const updateSelectedProject = (project: { id: string; name: string } | null) => {
+    console.log("Updating selected project in context:", project)
+    
+    if (project) {
+      // Update localStorage
+      localStorage.setItem("selectedProjectId", project.id)
+      localStorage.setItem("selectedProjectName", project.name)
+      
+      // Update state
+      setSelectedProject(project)
+      
+      // Trigger storage event for other components
+      window.dispatchEvent(new Event('storage'))
+    } else {
+      // Clear project
+      localStorage.removeItem("selectedProjectId")
+      localStorage.removeItem("selectedProjectName")
+      setSelectedProject(null)
+      
+      // Trigger storage event for other components
+      window.dispatchEvent(new Event('storage'))
+    }
+  }
+  
+  // Initialize selected project from localStorage and listen for changes
+  useEffect(() => {
+    const loadProjectFromStorage = () => {
+      const storedProjectId = localStorage.getItem("selectedProjectId")
+      const storedProjectName = localStorage.getItem("selectedProjectName")
+      
+      if (storedProjectId && storedProjectName) {
+        setSelectedProject({
+          id: storedProjectId,
+          name: storedProjectName
+        })
+      }
+    }
+    
+    // Load initially
+    loadProjectFromStorage()
+    
+    // Listen for changes (when project is selected from dialog)
+    window.addEventListener('storage', loadProjectFromStorage)
+    
+    return () => {
+      window.removeEventListener('storage', loadProjectFromStorage)
+    }
+  }, [])
 
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     const token = localStorage.getItem("token")
@@ -35,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem("token")
       if (!token) {
         setUser(null)
+        setLoading(false)  // Fix: Set loading false khi không có token
         return
       }
 
@@ -101,15 +155,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetchWithAuth("/api/auth/logout", { method: "POST" })
       localStorage.removeItem("token")
+      localStorage.removeItem("selectedProjectId")
+      localStorage.removeItem("selectedProjectName")
       // Clear cookie
       document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
       setUser(null)
+      setSelectedProject(null)
     } catch (error) {
       console.error("Logout error:", error)
       localStorage.removeItem("token")
+      localStorage.removeItem("selectedProjectId")
+      localStorage.removeItem("selectedProjectName")
       // Clear cookie
       document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
       setUser(null)
+      setSelectedProject(null)
     }
   }
 
@@ -122,6 +182,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{ 
         user, 
         loading, 
+        selectedProject,
+        setSelectedProject: updateSelectedProject, // Use the custom setter
         login, 
         logout, 
         checkAuth,

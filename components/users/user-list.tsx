@@ -238,7 +238,7 @@ export function UserList() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem
-                        onClick={() => window.location.href = `/dashboard/users/${user.id}`}
+                        onClick={() => window.location.href = `/admin/testers/${user.id}`}
                       >
                         View Details
                       </DropdownMenuItem>

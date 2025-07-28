@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { Project } from "@/lib/db"
+import { Project, ProjectWithStats } from "@/lib/db"
 import { PlusCircle, Edit, Trash2, FolderOpen, Search, X, Calendar, Users, TestTube } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -38,7 +38,7 @@ export default function ProjectSelectionDialog({
     }
   }
   
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   
@@ -110,19 +110,58 @@ export default function ProjectSelectionDialog({
 
   const fetchProjects = async () => {
     try {
-      console.log("Fetching projects...")
+      console.log("Fetching projects with stats...")
       setLoading(true)
-      const response = await fetchWithAuth("/api/projects")
-      console.log("API response status:", response.status)
+      
+      // Try stats API first
+      let response = await fetchWithAuth("/api/projects/stats")
+      console.log("Stats API response status:", response.status)
       
       if (response.ok) {
         const data = await response.json()
-        console.log("Projects data:", data)
+        console.log("Projects data received:", data)
+        console.log("Projects array:", data.projects)
         if (data.projects && Array.isArray(data.projects)) {
+          console.log("Setting projects:", data.projects.map(p => ({
+            name: p.name,
+            test_cases_count: p.test_cases_count,
+            testers_count: p.testers_count,
+            executions_count: p.executions_count,
+            pass_rate: p.pass_rate
+          })))
           setProjects(data.projects)
-          console.log("Projects set:", data.projects.length, "projects")
+          console.log("Projects set successfully:", data.projects.length, "projects")
+          return
         } else {
           console.error("Invalid projects data format:", data)
+        }
+      } else {
+        const errorData = await response.text()
+        console.error("Stats API failed:", response.status, response.statusText)
+        console.error("Error response:", errorData)
+      }
+      
+      // Fallback to regular projects API
+      console.log("Falling back to regular projects API...")
+      response = await fetchWithAuth("/api/projects")
+      console.log("Regular API response status:", response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Fallback projects data:", data)
+        if (data.projects && Array.isArray(data.projects)) {
+          // Add default stats for fallback
+          const projectsWithStats = data.projects.map(p => ({
+            ...p,
+            test_cases_count: 0,
+            testers_count: 0,
+            executions_count: 0,
+            pass_rate: 0
+          }))
+          setProjects(projectsWithStats)
+          console.log("Fallback projects set:", projectsWithStats.length, "projects")
+        } else {
+          console.error("Invalid fallback projects data format:", data)
           toast({
             title: "Lỗi dữ liệu",
             description: "Định dạng dữ liệu dự án không hợp lệ",
@@ -130,10 +169,12 @@ export default function ProjectSelectionDialog({
           })
         }
       } else {
-        console.error("Failed to fetch projects:", response.status)
+        const errorData = await response.text()
+        console.error("Both APIs failed:", response.status, response.statusText)
+        console.error("Fallback error response:", errorData)
         toast({
-          title: "Lỗi",
-          description: "Không thể tải danh sách dự án",
+          title: "Lỗi API",
+          description: `Không thể tải danh sách dự án (${response.status}: ${response.statusText})`,
           variant: "destructive",
         })
       }
@@ -621,18 +662,49 @@ export default function ProjectSelectionDialog({
                         <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                           <div className="flex items-center text-muted-foreground">
                             <TestTube className="w-3 h-3 mr-1" />
-                            <span>0 test cases</span>
+                            <span>{project.test_cases_count || 0} test cases</span>
                           </div>
                           <div className="flex items-center text-muted-foreground">
                             <Users className="w-3 h-3 mr-1" />
-                            <span>0 testers</span>
+                            <span>{project.testers_count || 0} testers</span>
                           </div>
                         </div>
+                        
+                        {/* Additional Stats */}
+                        {(project.executions_count > 0 || project.pass_rate > 0) && (
+                          <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
+                            <div className="flex items-center text-muted-foreground">
+                              <div className="w-3 h-3 mr-1 bg-blue-500 rounded-full"></div>
+                              <span>{project.executions_count || 0} executions</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className={`w-3 h-3 mr-1 rounded-full ${
+                                project.pass_rate >= 80 ? 'bg-green-500' : 
+                                project.pass_rate >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}></div>
+                              <span className={`${
+                                project.pass_rate >= 80 ? 'text-green-600' : 
+                                project.pass_rate >= 60 ? 'text-yellow-600' : 'text-red-600'
+                              }`}>
+                                {project.pass_rate}% pass
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div className="flex items-center text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3 mr-1" />
-                            <span>Tạo gần đây</span>
+                            <span>
+                              {project.created_at 
+                                ? new Date(project.created_at).toLocaleDateString('vi-VN', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                  })
+                                : 'N/A'
+                              }
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center text-xs text-green-600">

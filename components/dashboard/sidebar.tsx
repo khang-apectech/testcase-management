@@ -36,7 +36,7 @@ export function Sidebar({ className, projectId }: SidebarProps) {
     {
       href: `/project/${projectId}/testers`,
       icon: Icons.users,
-      title: "Testers",
+      title: "Quản lý Tester",
     },
     {
       href: `/project/${projectId}/reports`,

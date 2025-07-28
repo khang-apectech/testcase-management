@@ -14,7 +14,7 @@ export async function GET(
     
     if (!currentUser || currentUser.role !== "admin") {
       console.log("❌ Unauthorized access")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     const sql = await getDbConnection()
@@ -40,7 +40,7 @@ export async function GET(
 
     if (users.length === 0) {
       console.log("❌ User not found")
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "Không tìm thấy người dùng" }, { status: 404 })
     }
 
     // Get assigned test cases
@@ -96,14 +96,14 @@ export async function PUT(
   try {
     const currentUser = await getCurrentUser(request.headers.get("authorization"))
     if (!currentUser || currentUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     const body = await request.json()
     const { name, role } = body
 
     if (!name || !role) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json({ error: "Thiếu các trường bắt buộc" }, { status: 400 })
     }
 
     const sql = await getDbConnection()
@@ -117,13 +117,13 @@ export async function PUT(
     `
 
     if (users.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "Không tìm thấy người dùng" }, { status: 404 })
     }
 
     return NextResponse.json({ user: users[0] })
   } catch (error) {
     console.error("Update user error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Lỗi server nội bộ" }, { status: 500 })
   }
 }
 
@@ -135,7 +135,7 @@ export async function DELETE(
   try {
     const currentUser = await getCurrentUser(request.headers.get("authorization"))
     if (!currentUser || currentUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     const sql = await getDbConnection()
@@ -148,12 +148,12 @@ export async function DELETE(
     `
 
     if (users.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "Không tìm thấy người dùng" }, { status: 404 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Delete user error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Lỗi server nội bộ" }, { status: 500 })
   }
 } 

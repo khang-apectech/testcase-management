@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Eye, Edit, Play, Target, User, Calendar, Activity, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { Plus, Eye, Edit, Play, Target, User, Calendar, Activity, TrendingUp, Search, Filter, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { AssignTesters } from '@/components/test-cases/assign-testers'
 
@@ -66,28 +66,28 @@ export default function TestCasePage({ params }: TestCasePageProps) {
   // Unwrap params using React.use()
   const { project_id: projectId } = use(params)
   
-  useEffect(() => {
-    const fetchTestCases = async () => {
-      try {
-        console.log('Fetching test cases for project:', projectId)
-        const response = await fetchWithAuth(`/api/projects/${projectId}/test-cases`)
-        console.log('API response status:', response.status)
-        
-        if (response.ok) {
-          const data = await response.json()
-          console.log('Test cases received:', data)
-          setTestCases(data)
-        } else {
-          const errorData = await response.json()
-          console.error('API error:', response.status, errorData)
-        }
-      } catch (error) {
-        console.error('Error fetching test cases:', error)
-      } finally {
-        setLoading(false)
+  const fetchTestCases = async () => {
+    try {
+      console.log('Fetching test cases for project:', projectId)
+      const response = await fetchWithAuth(`/api/projects/${projectId}/test-cases`)
+      console.log('API response status:', response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Test cases received:', data)
+        setTestCases(data)
+      } else {
+        const errorData = await response.json()
+        console.error('API error:', response.status, errorData)
       }
+    } catch (error) {
+      console.error('Error fetching test cases:', error)
+    } finally {
+      setLoading(false)
     }
-    
+  }
+  
+  useEffect(() => {
     fetchTestCases()
   }, [projectId, fetchWithAuth])
 
@@ -97,7 +97,7 @@ export default function TestCasePage({ params }: TestCasePageProps) {
                          testCase.tinh_nang?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesPriority = priorityFilter === 'all' || testCase.priority === priorityFilter
     const matchesPlatform = platformFilter === 'all' || testCase.platform === platformFilter
-    const matchesStatus = statusFilter === 'all' || testCase.status === statusFilter
+    const matchesStatus = statusFilter === 'all' || testCase.current_status === statusFilter
     
     return matchesSearch && matchesPriority && matchesPlatform && matchesStatus
   })
@@ -231,7 +231,7 @@ export default function TestCasePage({ params }: TestCasePageProps) {
           </Card>
         ) : (
           paginatedTestCases.map((testCase: any) => (
-            <Card key={testCase.id} className={`hover:shadow-lg transition-all duration-300 border-l-4 ${getCardBorderColor(testCase.status, testCase.priority)}`}>
+            <Card key={testCase.id} className={`hover:shadow-lg transition-all duration-300 border-l-4 ${getCardBorderColor(testCase.current_status, testCase.priority)}`}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
@@ -286,8 +286,10 @@ export default function TestCasePage({ params }: TestCasePageProps) {
                     <Badge className={getPriorityColor(testCase.priority)}>
                       {testCase.priority || 'Medium'}
                     </Badge>
-                    <Badge className={getStatusColor(testCase.status)}>
-                      {testCase.status || 'Not Executed'}
+                    <Badge className={getStatusColor(testCase.current_status)}>
+                      {testCase.current_status === 'not_executed' ? 'Chưa thực thi' : 
+                       testCase.current_status === 'passed' ? 'Passed' :
+                       testCase.current_status === 'failed' ? 'Failed' : 'Pending'}
                     </Badge>
                     <Badge variant="outline" className="bg-gray-50">
                       {testCase.platform === 'web' && '🌐 Web'}
@@ -353,6 +355,39 @@ export default function TestCasePage({ params }: TestCasePageProps) {
                       </div>
                     </div>
                   </div>
+
+                  {/* Pass/Fail Statistics */}
+                  {testCase.total_executions > 0 && (
+                    <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
+                      <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span className="text-xs font-medium text-green-800">Passed</span>
+                        </div>
+                        <div className="text-lg font-bold text-green-900">
+                          {testCase.passed_executions || 0}
+                        </div>
+                        <div className="text-xs text-green-700">
+                          {testCase.total_executions > 0 ? 
+                            Math.round(((testCase.passed_executions || 0) / testCase.total_executions) * 100) : 0}%
+                        </div>
+                      </div>
+                      
+                      <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          <span className="text-xs font-medium text-red-800">Failed</span>
+                        </div>
+                        <div className="text-lg font-bold text-red-900">
+                          {testCase.failed_executions || 0}
+                        </div>
+                        <div className="text-xs text-red-700">
+                          {testCase.total_executions > 0 ? 
+                            Math.round(((testCase.failed_executions || 0) / testCase.total_executions) * 100) : 0}%
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Additional Info Row */}
                   <div className="flex items-center gap-6 text-sm text-muted-foreground pt-2 border-t border-gray-100">
@@ -378,6 +413,14 @@ export default function TestCasePage({ params }: TestCasePageProps) {
                         Xem chi tiết
                       </Link>
                     </Button>
+                    {testCase.total_executions > 0 && (
+                      <Button variant="outline" size="sm" asChild className="hover:bg-purple-50 hover:border-purple-300">
+                        <Link href={`/project/${projectId}/testcase/${testCase.id}/stats`}>
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          Thống kê
+                        </Link>
+                      </Button>
+                    )}
                     {user?.role === 'admin' && (
                       <>
                         <Button variant="outline" size="sm" asChild className="hover:bg-orange-50 hover:border-orange-300">

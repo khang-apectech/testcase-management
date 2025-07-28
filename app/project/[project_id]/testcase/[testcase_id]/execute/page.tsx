@@ -58,18 +58,18 @@ export default function ExecuteTestCasePage({ params }: ExecuteTestCasePageProps
         <Button variant="outline" size="sm" asChild>
           <Link href={`/project/${project_id}/testcase/${testcase_id}`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Test Case
+            Quay lại Test Case
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Execute Test Case</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Thực thi Test Case</h1>
           <p className="text-muted-foreground">
-            Execute: {testCase.title}
+            Thực thi: {testCase.title}
           </p>
         </div>
       </div>
 
-      <Suspense fallback={<div>Loading execution form...</div>}>
+      <Suspense fallback={<div>Đang tải form thực thi...</div>}>
         <SimpleExecutionForm 
           projectId={project_id} 
           testCase={testCase}

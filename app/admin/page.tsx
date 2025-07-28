@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Admin Dashboard
+          Bảng điều khiển Admin
         </h1>
         <p className="text-xl text-gray-600">
           Chào mừng đến với bảng điều khiển quản trị hệ thống

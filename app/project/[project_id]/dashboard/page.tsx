@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { 
   TestTube, 
   Users, 
@@ -16,7 +17,12 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  BarChart3,
+  PieChart,
+  Activity,
+  Target,
+  AlertTriangle
 } from "lucide-react";
 
 interface ProjectStats {
@@ -26,7 +32,29 @@ interface ProjectStats {
   pending_test_cases: number;
   total_testers: number;
   active_testers: number;
+  total_executions: number;
+  total_passed_executions: number;
+  total_failed_executions: number;
   completion_rate: number;
+  pass_rate: number;
+  platform_stats: Array<{
+    platform: string;
+    total_cases: number;
+    passed_cases: number;
+    failed_cases: number;
+  }>;
+  priority_stats: Array<{
+    priority: string;
+    total_cases: number;
+    passed_cases: number;
+    failed_cases: number;
+  }>;
+  trend_data: Array<{
+    date: string;
+    passed: number;
+    failed: number;
+    total: number;
+  }>;
 }
 
 interface RecentActivity {
@@ -62,30 +90,31 @@ export default function ProjectDashboard() {
       const activitiesData = await activitiesResponse.json();
 
       setStats(statsData);
-      setActivities(activitiesData);
+      setActivities(Array.isArray(activitiesData) ? activitiesData : []);
     } catch (error) {
       console.error("Error fetching project data:", error);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
   };
 
   // Filter and pagination logic for activities
-  const filteredActivities = activities.filter(activity => {
+  const filteredActivities = Array.isArray(activities) ? activities.filter(activity => {
     if (activityFilter === "all") return true;
     return activity.type === activityFilter;
-  });
+  }) : [];
 
   const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage);
   const startIndex = (currentPage - 1) * activitiesPerPage;
   const paginatedActivities = filteredActivities.slice(startIndex, startIndex + activitiesPerPage);
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return <div className="flex justify-center p-8">Đang tải...</div>;
   }
 
   if (!stats) {
-    return <div className="flex justify-center p-8">Error loading project data</div>;
+    return <div className="flex justify-center p-8">Lỗi khi tải dữ liệu dự án</div>;
   }
 
   return (
@@ -108,7 +137,7 @@ export default function ProjectDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng Test Cases</CardTitle>
@@ -124,7 +153,7 @@ export default function ProjectDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Passed</CardTitle>
+            <CardTitle className="text-sm font-medium">Thành công</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -137,7 +166,7 @@ export default function ProjectDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <CardTitle className="text-sm font-medium">Thất bại</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -150,13 +179,26 @@ export default function ProjectDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng lần thực thi</CardTitle>
+            <Activity className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.total_executions}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.pass_rate}% tỷ lệ thành công
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Testers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_testers}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.active_testers} đang hoạt động
+              {stats.active_testers} hoạt động 7 ngày qua
             </p>
           </CardContent>
         </Card>
@@ -176,12 +218,7 @@ export default function ProjectDashboard() {
               <span>Hoàn thành</span>
               <span>{stats.completion_rate}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${stats.completion_rate}%` }}
-              ></div>
-            </div>
+            <Progress value={stats.completion_rate} className="h-3" />
             <div className="grid grid-cols-3 gap-2 sm:gap-4 text-sm">
               <div className="text-center">
                 <div className="flex items-center justify-center flex-wrap">
@@ -193,7 +230,7 @@ export default function ProjectDashboard() {
               <div className="text-center">
                 <div className="flex items-center justify-center flex-wrap">
                   <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                  <span className="text-xs sm:text-sm">Failed</span>
+                  <span className="text-xs sm:text-sm">Thất bại</span>
                 </div>
                 <div className="font-semibold text-sm sm:text-base">{stats.failed_test_cases}</div>
               </div>
@@ -208,6 +245,159 @@ export default function ProjectDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Platform Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Thống kê theo Platform
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats.platform_stats && stats.platform_stats.length > 0 ? (
+                stats.platform_stats.map((platform, index) => {
+                  const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
+                  const color = colors[index % colors.length];
+                  const passRate = platform.total_cases > 0 
+                    ? Math.round((platform.passed_cases / platform.total_cases) * 100) 
+                    : 0;
+                  
+                  return (
+                    <div key={platform.platform} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 ${color} rounded-full`}></div>
+                          <span className="font-medium">
+                            {platform.platform === 'web' && '🌐 Web'}
+                            {platform.platform === 'app' && '📱 Mobile App'}
+                            {platform.platform === 'cms' && '⚙️ CMS'}
+                            {platform.platform === 'server' && '🖥️ Server'}
+                            {!['web', 'app', 'cms', 'server'].includes(platform.platform) && platform.platform}
+                          </span>
+                        </div>
+                        <span className="text-muted-foreground">{passRate}% pass</span>
+                      </div>
+                      <Progress value={passRate} className="h-2" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Thành công: {platform.passed_cases}</span>
+                        <span>Thất bại: {platform.failed_cases}</span>
+                        <span>Tổng: {platform.total_cases}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  Chưa có dữ liệu platform
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Priority Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Target className="w-5 h-5 mr-2" />
+              Thống kê theo Priority
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats.priority_stats && stats.priority_stats.length > 0 ? (
+                stats.priority_stats.map((priority, index) => {
+                  const priorityColors = {
+                    'critical': 'bg-red-600',
+                    'high': 'bg-red-500',
+                    'medium': 'bg-yellow-500',
+                    'low': 'bg-green-500'
+                  };
+                  const color = priorityColors[priority.priority as keyof typeof priorityColors] || 'bg-gray-500';
+                  const passRate = priority.total_cases > 0 
+                    ? Math.round((priority.passed_cases / priority.total_cases) * 100) 
+                    : 0;
+                  
+                  return (
+                    <div key={priority.priority} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 ${color} rounded-full`}></div>
+                          <span className="font-medium capitalize">
+                            {priority.priority === 'critical' && '🔴 Critical'}
+                            {priority.priority === 'high' && '🟠 High'}
+                            {priority.priority === 'medium' && '🟡 Medium'}
+                            {priority.priority === 'low' && '🟢 Low'}
+                            {!['critical', 'high', 'medium', 'low'].includes(priority.priority) && priority.priority}
+                          </span>
+                        </div>
+                        <span className="text-muted-foreground">{passRate}% pass</span>
+                      </div>
+                      <Progress value={passRate} className="h-2" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Thành công: {priority.passed_cases}</span>
+                        <span>Thất bại: {priority.failed_cases}</span>
+                        <span>Tổng: {priority.total_cases}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  Chưa có dữ liệu priority
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trend Chart */}
+      {stats.trend_data && stats.trend_data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Activity className="w-5 h-5 mr-2" />
+              Xu hướng Test Execution (7 ngày qua)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {stats.trend_data.map((day, index) => {
+                const passRate = day.total > 0 ? Math.round((day.passed / day.total) * 100) : 0;
+                return (
+                  <div key={day.date} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">
+                        {new Date(day.date).toLocaleDateString('vi-VN')}
+                      </span>
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="text-green-600">✓ {day.passed}</span>
+                        <span className="text-red-600">✗ {day.failed}</span>
+                        <span className="text-muted-foreground">({passRate}%)</span>
+                      </div>
+                    </div>
+                    <div className="flex h-2 rounded-full overflow-hidden bg-gray-200">
+                      <div 
+                        className="bg-green-500 transition-all duration-300"
+                        style={{ width: `${day.total > 0 ? (day.passed / day.total) * 100 : 0}%` }}
+                      ></div>
+                      <div 
+                        className="bg-red-500 transition-all duration-300"
+                        style={{ width: `${day.total > 0 ? (day.failed / day.total) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Activities */}
       <Card>

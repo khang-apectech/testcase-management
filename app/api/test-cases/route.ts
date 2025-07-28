@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     console.log("Current user:", currentUser)
     if (!currentUser) {
       console.log("Unauthorized - No current user")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     const sql = await getDbConnection()
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     console.error("Get test cases error:", error)
     return NextResponse.json(
       { 
-        error: "Internal server error",
+        error: "Lỗi server nội bộ",
         details: error instanceof Error ? error.message : String(error)
       }, 
       { status: 500 }
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     console.log("Current user:", currentUser)
     if (!currentUser || currentUser.role !== "admin") {
       console.log("Unauthorized - Not admin")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     let body
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       console.log("Request body:", body)
     } catch (parseError) {
       console.error("❌ Failed to parse request body:", parseError)
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+      return NextResponse.json({ error: "Dữ liệu yêu cầu không hợp lệ" }, { status: 400 })
     }
     
     const { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority, project_id } = body
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
     if (!hang_muc || !tinh_nang || !so_lan_phai_test || !mo_ta || !priority || !project_id) {
       console.log("❌ Missing required fields:", { hang_muc, tinh_nang, mo_ta, so_lan_phai_test, priority, project_id })
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json({ error: "Thiếu các trường bắt buộc" }, { status: 400 })
     }
     
     // Kiểm tra xem người dùng có quyền truy cập dự án không
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       WHERE user_id = ${currentUser.id} AND project_id = ${project_id}
     `
     if (hasAccess.length === 0 && currentUser.role !== 'admin') {
-      return NextResponse.json({ error: "You don't have access to this project" }, { status: 403 })
+      return NextResponse.json({ error: "Bạn không có quyền truy cập dự án này" }, { status: 403 })
     }
 
     const sql = await getDbConnection()
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       console.log("Test case created:", testCases[0])
     } catch (sqlError) {
       console.error("❌ SQL Insert error:", sqlError)
-      return NextResponse.json({ error: "Database insert error", details: sqlError instanceof Error ? sqlError.message : String(sqlError) }, { status: 500 })
+      return NextResponse.json({ error: "Lỗi chèn dữ liệu", details: sqlError instanceof Error ? sqlError.message : String(sqlError) }, { status: 500 })
     }
 
     // Add to history
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     console.error("Create test case error (outer):", error)
     return NextResponse.json(
       { 
-        error: "Internal server error",
+        error: "Lỗi server nội bộ",
         details: error instanceof Error ? error.message : String(error)
       }, 
       { status: 500 }
@@ -232,7 +232,7 @@ export async function PUT(request: NextRequest) {
     console.log("Current user:", currentUser)
     if (!currentUser || currentUser.role !== "admin") {
       console.log("Unauthorized - Not admin")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Không có quyền truy cập" }, { status: 401 })
     }
 
     const body = await request.json()
@@ -242,7 +242,7 @@ export async function PUT(request: NextRequest) {
 
     if (!Array.isArray(testCases)) {
       console.log("Invalid request body - testCases is not an array")
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+      return NextResponse.json({ error: "Dữ liệu yêu cầu không hợp lệ" }, { status: 400 })
     }
 
     const sql = await getDbConnection()
@@ -273,7 +273,7 @@ export async function PUT(request: NextRequest) {
     console.error("Update test cases error:", error)
     return NextResponse.json(
       { 
-        error: "Internal server error",
+        error: "Lỗi server nội bộ",
         details: error instanceof Error ? error.message : String(error)
       }, 
       { status: 500 }

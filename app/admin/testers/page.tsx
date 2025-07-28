@@ -238,7 +238,7 @@ export default function AdminTestersPage() {
   const paginatedTesters = filteredTesters.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return <div className="flex justify-center p-8">Đang tải...</div>;
   }
 
   return (

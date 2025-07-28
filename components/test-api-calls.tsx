@@ -72,11 +72,11 @@ export function TestApiCalls({ projectId }: TestApiCallsProps) {
       }
     ] : []),
     {
-      label: "All Users",
+      label: "Tất cả người dùng",
       path: "/api/users"
     },
     {
-      label: "Debug Data",
+      label: "Dữ liệu Debug",
       path: "/api/debug/test-assignments"
     }
   ];

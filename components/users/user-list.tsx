@@ -94,22 +94,22 @@ export function UserList() {
       const data = await response.json()
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "User added successfully",
+          title: "Thành công",
+          description: "Đã thêm user thành công",
         })
         setShowAddDialog(false)
         loadUsers()
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to add user",
+          title: "Lỗi",
+          description: data.error || "Không thể thêm user",
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to add user",
+        title: "Lỗi",
+        description: "Không thể thêm user",
         variant: "destructive",
       })
     }
@@ -123,8 +123,8 @@ export function UserList() {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "User deleted successfully",
+          title: "Thành công",
+          description: "Đã xóa user thành công",
         })
         loadUsers()
       } else {
@@ -145,14 +145,14 @@ export function UserList() {
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Đang tải...</div>
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Search users..."
+          placeholder="Tìm kiếm người dùng..."
           className="max-w-[300px]"
           type="search"
         />

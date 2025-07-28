@@ -187,11 +187,11 @@ export default function TestCaseDetailPage({ params }: TestCaseDetailPageProps) 
         <div className="flex items-center gap-2 sm:ml-auto">
           <Button variant="outline" size="sm">
             <Copy className="mr-2 h-4 w-4" />
-            Copy ID
+            Sao chép ID
           </Button>
           <Button variant="outline" size="sm">
             <Share2 className="mr-2 h-4 w-4" />
-            Share
+            Chia sẻ
           </Button>
           <Button variant="outline" asChild>
             <Link href={`/project/${project_id}/testcase/${testcase_id}/edit`}>
@@ -226,7 +226,7 @@ export default function TestCaseDetailPage({ params }: TestCaseDetailPageProps) 
         </Badge>
         <Badge className={getPriorityColor(testCase.priority)} variant="outline">
           <Target className="mr-1 h-3 w-3" />
-          {getPriorityText(testCase.priority)} Priority
+          Độ ưu tiên {getPriorityText(testCase.priority)}
         </Badge>
         {testCase.assigned_tester && (
           <Badge variant="secondary">
@@ -253,7 +253,7 @@ export default function TestCaseDetailPage({ params }: TestCaseDetailPageProps) 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Passed</p>
+                <p className="text-sm font-medium text-muted-foreground">Thành công</p>
                 <p className="text-2xl font-bold text-green-600">{passedExecutions}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
@@ -264,7 +264,7 @@ export default function TestCaseDetailPage({ params }: TestCaseDetailPageProps) 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Failed</p>
+                <p className="text-sm font-medium text-muted-foreground">Thất bại</p>
                 <p className="text-2xl font-bold text-red-600">{failedExecutions}</p>
               </div>
               <XCircle className="h-8 w-8 text-red-500" />

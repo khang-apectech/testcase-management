@@ -83,23 +83,23 @@ export function ExecutionForm({ projectId, testCase }: ExecutionFormProps) {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Test execution recorded successfully",
+          title: "Thành công",
+          description: "Đã ghi nhận kết quả thực thi test thành công",
         })
         router.push(`/project/${projectId}/testcase/${testCase.id}`)
       } else {
         const error = await response.json()
         toast({
-          title: "Error",
-          description: error.error || "Failed to record test execution",
+          title: "Lỗi",
+          description: error.error || "Không thể ghi nhận kết quả thực thi test",
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error('Error recording execution:', error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi không mong muốn",
         variant: "destructive",
       })
     } finally {

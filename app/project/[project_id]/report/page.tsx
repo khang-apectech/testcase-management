@@ -1,75 +1,92 @@
-import { Suspense } from 'react'
+'use client'
+
+import { Suspense, useState, useEffect, use } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { BarChart, Download, FileText, TrendingUp, TrendingDown, Activity } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { BarChart, Download, FileText, TrendingUp, TrendingDown, Activity, PieChart, Target, Users, AlertTriangle } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 
 interface ReportsPageProps {
   params: Promise<{ project_id: string }>
 }
 
-async function getProjectReports(projectId: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/projects/${projectId}/reports`, {
-      cache: 'no-store'
-    })
-    
-    if (!response.ok) {
-      return {
-        summary: {
-          totalTestCases: 0,
-          executedTestCases: 0,
-          totalExecutions: 0,
-          passedExecutions: 0,
-          failedExecutions: 0,
-          passRate: 0
-        },
-        trends: [],
-        recentExecutions: [],
-        coverage: []
+export default function ReportsPage({ params }: ReportsPageProps) {
+  const { fetchWithAuth } = useAuth()
+  const { project_id } = use(params)
+  const [reports, setReports] = useState({
+    summary: {
+      totalTestCases: 0,
+      executedTestCases: 0,
+      totalExecutions: 0,
+      passedExecutions: 0,
+      failedExecutions: 0,
+      passRate: 0
+    },
+    trends: [],
+    recentExecutions: [],
+    coverage: []
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetchWithAuth(`/api/projects/${project_id}/reports`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setReports(data)
+        }
+      } catch (error) {
+        console.error('Error fetching reports:', error)
+      } finally {
+        setLoading(false)
       }
     }
-    
-    return await response.json()
-  } catch (error) {
-    console.error('Error fetching reports:', error)
-    return {
-      summary: {
-        totalTestCases: 0,
-        executedTestCases: 0,
-        totalExecutions: 0,
-        passedExecutions: 0,
-        failedExecutions: 0,
-        passRate: 0
-      },
-      trends: [],
-      recentExecutions: [],
-      coverage: []
-    }
-  }
-}
 
-export default async function ReportsPage({ params }: ReportsPageProps) {
-  const { project_id } = await params
-  const reports = await getProjectReports(project_id)
+    fetchReports()
+  }, [project_id, fetchWithAuth])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">Đang tải báo cáo...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Project Reports</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Báo cáo Dự án</h1>
           <p className="text-muted-foreground">
-            View testing progress and generate reports
+            Xem tiến độ testing và tạo báo cáo
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => window.open(`/api/export/project-report/${project_id}?format=pdf`, '_blank')}
+          >
             <Download className="mr-2 h-4 w-4" />
             Export PDF
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => window.open(`/api/export/project-report/${project_id}?format=excel`, '_blank')}
+          >
             <FileText className="mr-2 h-4 w-4" />
             Export Excel
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => window.open(`/api/export/apec-space`, '_blank')}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
           </Button>
         </div>
       </div>
@@ -78,24 +95,24 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Test Cases</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng Test Case</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reports.summary.totalTestCases}</div>
+            <div className="text-2xl font-bold">{reports.summary.totalTestCases || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Executed Test Cases</CardTitle>
+            <CardTitle className="text-sm font-medium">Test Case đã thực thi</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reports.summary.executedTestCases}</div>
+            <div className="text-2xl font-bold">{reports.summary.executedTestCases || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {reports.summary.totalTestCases > 0 
-                ? `${Math.round((reports.summary.executedTestCases / reports.summary.totalTestCases) * 100)}%`
+              {Number(reports.summary.totalTestCases || 0) > 0 
+                ? `${Math.round((Number(reports.summary.executedTestCases || 0) / Number(reports.summary.totalTestCases || 1)) * 100)}%`
                 : '0%'
               } of total test cases
             </p>
@@ -104,42 +121,42 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Executions</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng lần thực thi</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reports.summary.totalExecutions}</div>
+            <div className="text-2xl font-bold">{reports.summary.totalExecutions || 0}</div>
             <p className="text-xs text-muted-foreground">
-              All test runs
+              Tất cả lần chạy test
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Passed Executions</CardTitle>
+            <CardTitle className="text-sm font-medium">Lần thực thi thành công</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{reports.summary.passedExecutions}</div>
+            <div className="text-2xl font-bold text-green-600">{reports.summary.passedExecutions || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {reports.summary.passRate.toFixed(1)}% pass rate
+              {Number(reports.summary.passRate || 0).toFixed(1)}% tỷ lệ thành công
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed Executions</CardTitle>
+            <CardTitle className="text-sm font-medium">Lần thực thi thất bại</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{reports.summary.failedExecutions}</div>
+            <div className="text-2xl font-bold text-red-600">{reports.summary.failedExecutions || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {reports.summary.totalExecutions > 0 
-                ? `${Math.round((reports.summary.failedExecutions / reports.summary.totalExecutions) * 100)}%`
+              {Number(reports.summary.totalExecutions || 0) > 0 
+                ? `${Math.round((Number(reports.summary.failedExecutions || 0) / Number(reports.summary.totalExecutions || 1)) * 100)}%`
                 : '0%'
-              } of total executions
+              } tổng số lần thực thi
             </p>
           </CardContent>
         </Card>
@@ -149,7 +166,7 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
         {/* Recent Executions */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Test Executions</CardTitle>
+            <CardTitle>Lần thực thi gần đây</CardTitle>
             <CardDescription>
               Latest test case executions in this project
             </CardDescription>
@@ -185,36 +202,58 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
         {/* Test Coverage */}
         <Card>
           <CardHeader>
-            <CardTitle>Test Coverage</CardTitle>
+            <CardTitle className="flex items-center">
+              <Target className="mr-2 h-4 w-4" />
+              Test Coverage
+            </CardTitle>
             <CardDescription>
-              Test execution coverage by category
+              Test execution coverage by platform
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {reports.coverage.length === 0 ? (
                 <div className="text-center py-6">
+                  <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No coverage data available</p>
                 </div>
               ) : (
                 reports.coverage.map((item: any, index: number) => {
                   const colors = ['bg-blue-600', 'bg-green-600', 'bg-yellow-600', 'bg-purple-600', 'bg-red-600']
                   const color = colors[index % colors.length]
+                  const coverage = Number(item.coveragepercentage || 0);
                   
                   return (
-                    <div key={item.platform || 'unknown'} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>{item.platform || 'Unknown Platform'}</span>
-                        <span>{item.coveragepercentage || 0}%</span>
+                    <div key={item.platform || 'unknown'} className="space-y-3 p-4 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 ${color} rounded-full`}></div>
+                          <span className="font-medium">
+                            {item.platform === 'web' && '🌐 Web'}
+                            {item.platform === 'app' && '📱 Mobile App'}
+                            {item.platform === 'cms' && '⚙️ CMS'}
+                            {item.platform === 'server' && '🖥️ Server'}
+                            {!['web', 'app', 'cms', 'server'].includes(item.platform) && (item.platform || 'Unknown Platform')}
+                          </span>
+                        </div>
+                        <Badge variant={coverage >= 80 ? 'default' : coverage >= 50 ? 'secondary' : 'destructive'}>
+                          {coverage}%
+                        </Badge>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`${color} h-2 rounded-full`} 
-                          style={{width: `${item.coveragepercentage || 0}%`}}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.executedtestcases || 0} / {item.totaltestcases || 0} test cases executed
+                      <Progress value={coverage} className="h-3" />
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="text-center">
+                          <div className="font-semibold text-green-600">{item.executedtestcases || 0}</div>
+                          <div className="text-xs text-muted-foreground">Executed</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-semibold text-gray-600">{(item.totaltestcases || 0) - (item.executedtestcases || 0)}</div>
+                          <div className="text-xs text-muted-foreground">Remaining</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-semibold text-blue-600">{item.totaltestcases || 0}</div>
+                          <div className="text-xs text-muted-foreground">Total</div>
+                        </div>
                       </div>
                     </div>
                   )

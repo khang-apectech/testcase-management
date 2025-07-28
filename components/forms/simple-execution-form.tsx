@@ -100,7 +100,7 @@ export function SimpleExecutionForm({ projectId, testCase }: ExecutionFormProps)
         alert('Đã ghi nhận kết quả thực thi thành công!')
         router.push(`/project/${projectId}/testcase/${testCase.id}`)
       } else {
-        throw new Error('Failed to submit execution')
+        throw new Error('Không thể gửi kết quả thực thi')
       }
     } catch (error) {
       console.error('Error submitting execution:', error)

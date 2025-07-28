@@ -41,9 +41,9 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Cài đặt Dự án</h1>
         <p className="text-muted-foreground">
-          Manage project configuration and settings
+          Quản lý cấu hình và cài đặt dự án
         </p>
       </div>
 
@@ -53,36 +53,36 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Basic Information
+              Thông tin cơ bản
             </CardTitle>
             <CardDescription>
-              Update basic project information
+              Cập nhật thông tin cơ bản của dự án
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="project-name">Project Name</Label>
+                <Label htmlFor="project-name">Tên dự án</Label>
                 <Input
                   id="project-name"
                   defaultValue={project.name}
-                  placeholder="Enter project name"
+                  placeholder="Nhập tên dự án"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="project-status">Status</Label>
+                <Label htmlFor="project-status">Trạng thái</Label>
                 <Badge variant="outline">
-                  {project.status || 'Active'}
+                  {project.status === 'active' ? 'Hoạt động' : project.status || 'Hoạt động'}
                 </Badge>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="project-description">Description</Label>
+              <Label htmlFor="project-description">Mô tả</Label>
               <Textarea
                 id="project-description"
                 defaultValue={project.description}
-                placeholder="Enter project description"
+                placeholder="Nhập mô tả dự án"
                 rows={4}
               />
             </div>
@@ -90,7 +90,7 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
             <div className="flex items-center gap-2">
               <Button>
                 <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                Lưu thay đổi
               </Button>
             </div>
           </CardContent>

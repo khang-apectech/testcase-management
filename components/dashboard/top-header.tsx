@@ -5,7 +5,7 @@ import { TesterListButton } from "@/components/tester-list-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserNav } from "@/components/dashboard/user-nav";
-import { Project, Users, Settings } from "lucide-react";
+import { Folder, Users, Settings } from "lucide-react";
 import Link from "next/link";
 
 export function TopHeader() {
@@ -18,7 +18,7 @@ export function TopHeader() {
         <div className="flex items-center space-x-4">
           {selectedProject ? (
             <div className="flex items-center space-x-2">
-              <Project className="w-5 h-5 text-blue-600" />
+              <Folder className="w-5 h-5 text-blue-600" />
               <div>
                 <span className="font-medium text-gray-900">{selectedProject.name}</span>
                 <Badge variant="outline" className="ml-2 text-xs">
@@ -28,7 +28,7 @@ export function TopHeader() {
             </div>
           ) : (
             <div className="flex items-center space-x-2 text-amber-600">
-              <Project className="w-5 h-5" />
+              <Folder className="w-5 h-5" />
               <span className="font-medium">Chưa chọn dự án</span>
             </div>
           )}

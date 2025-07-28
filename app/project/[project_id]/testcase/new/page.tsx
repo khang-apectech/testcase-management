@@ -17,18 +17,18 @@ export default async function NewTestCasePage({ params }: NewTestCasePageProps) 
         <Button variant="outline" size="sm" asChild>
           <Link href={`/project/${project_id}/testcase`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Test Cases
+            Quay lại danh sách Test Case
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create New Test Case</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Tạo Test Case mới</h1>
           <p className="text-muted-foreground">
-            Add a new test case to this project
+            Thêm test case mới vào dự án này
           </p>
         </div>
       </div>
 
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <TestCaseForm projectId={project_id} />
       </Suspense>
     </div>

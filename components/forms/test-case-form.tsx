@@ -97,8 +97,8 @@ export function TestCaseForm({ projectId, testCase, isEditing = false }: TestCas
       if (response.ok) {
         const result = await response.json()
         toast({
-          title: "Success",
-          description: isEditing ? "Test case updated successfully" : "Test case created successfully",
+          title: "Thành công",
+          description: isEditing ? "Đã cập nhật test case thành công" : "Đã tạo test case thành công",
         })
         
         if (isEditing) {
@@ -109,16 +109,16 @@ export function TestCaseForm({ projectId, testCase, isEditing = false }: TestCas
       } else {
         const error = await response.json()
         toast({
-          title: "Error",
-          description: error.error || "Failed to save test case",
+          title: "Lỗi",
+          description: error.error || "Không thể lưu test case",
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error('Error saving test case:', error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi không mong muốn",
         variant: "destructive",
       })
     } finally {

@@ -4,10 +4,10 @@ import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, FolderOpen } from "lucide-react"
-import { UnifiedProjectSelector } from "@/components/unified-project-selector"
+import { ProjectSelectionModal } from "@/components/project-selection-modal"
 
 export function ProjectSelector() {
-  const { selectedProject } = useAuth()
+  const { selectedProject, user } = useAuth()
   const [showDialog, setShowDialog] = useState(false)
 
   return (
@@ -29,12 +29,22 @@ export function ProjectSelector() {
         </Button>
       </div>
 
-      <UnifiedProjectSelector
+      {/* Modal chào mừng khi ấn nút project selector */}
+      <ProjectSelectionModal
         isOpen={showDialog}
-        onClose={() => setShowDialog(false)}
-        mode="management"
-        title="Chuyển đổi dự án"
-        description="Chọn dự án bạn muốn chuyển đến"
+        onClose={() => {
+          setShowDialog(false);
+        }}
+        onProjectSelected={(projectId: string) => {
+          setShowDialog(false);
+          
+          // Navigate to project dashboard
+          setTimeout(() => {
+            const redirectPath = `/project/${projectId}/dashboard`;
+            window.location.href = redirectPath;
+          }, 100);
+        }}
+        userRole={user?.role || "tester"}
       />
     </>
   )

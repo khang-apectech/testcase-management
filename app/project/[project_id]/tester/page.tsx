@@ -39,11 +39,9 @@ export default function TestersPage({ params }: TestersPageProps) {
 
   const fetchTesters = async () => {
     try {
-      console.log('Fetching project testers for project:', projectId)
       const response = await fetchWithAuth(`/api/projects/${projectId}/testers`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Project testers data:', data)
         setTesters(data)
       } else {
         console.error('Failed to fetch project testers:', response.status, response.statusText)
@@ -59,11 +57,9 @@ export default function TestersPage({ params }: TestersPageProps) {
 
   const fetchAllTesters = async () => {
     try {
-      console.log('Fetching all testers for project assignment')
       const response = await fetchWithAuth('/api/admin/testers')
       if (response.ok) {
         const data = await response.json()
-        console.log('All testers data:', data)
         // Filter only active testers (not admins)
         setAllTesters(data.filter((t: any) => t.role === 'tester' && t.status === 'active'))
       } else {
@@ -88,16 +84,13 @@ export default function TestersPage({ params }: TestersPageProps) {
 
     try {
       setAssignLoading(true)
-      console.log('Assigning testers:', selectedTesters, 'to project:', projectId)
       
       const response = await fetchWithAuth(`/api/projects/${projectId}/testers`, {
         method: 'POST',
         body: JSON.stringify({ testerIds: selectedTesters })
       })
 
-      console.log('Assign response status:', response.status)
       const responseData = await response.json()
-      console.log('Assign response data:', responseData)
 
       if (response.ok) {
         toast({

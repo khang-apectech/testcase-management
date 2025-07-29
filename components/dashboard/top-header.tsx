@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { Folder, Users, Settings, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import ProjectSelectionDialog from "@/components/project-selection-dialog";
+import { ProjectSelectionModal } from "@/components/project-selection-modal";
 
 export function TopHeader() {
   const { user, selectedProject } = useAuth();
@@ -78,10 +78,22 @@ export function TopHeader() {
         </div>
       </div>
 
-      {/* Project Selection Dialog */}
-      <ProjectSelectionDialog 
+      {/* Modal chào mừng khi ấn đổi dự án */}
+      <ProjectSelectionModal
         isOpen={showProjectDialog}
-        onOpenChange={setShowProjectDialog}
+        onClose={() => {
+          setShowProjectDialog(false);
+        }}
+        onProjectSelected={(projectId: string) => {
+          setShowProjectDialog(false);
+          
+          // Navigate to project dashboard
+          setTimeout(() => {
+            const redirectPath = `/project/${projectId}/dashboard`;
+            window.location.href = redirectPath;
+          }, 100);
+        }}
+        userRole={user?.role || "tester"}
       />
     </div>
   );

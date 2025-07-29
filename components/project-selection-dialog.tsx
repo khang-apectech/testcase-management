@@ -80,7 +80,6 @@ export default function ProjectSelectionDialog({
   // Effect to fetch projects when dialog is open
   useEffect(() => {
     if (open) {
-      console.log("Dialog opened, fetching projects...")
       fetchProjects()
       setSearchTerm("") // Reset search when opening
     }
@@ -110,27 +109,15 @@ export default function ProjectSelectionDialog({
 
   const fetchProjects = async () => {
     try {
-      console.log("Fetching projects with stats...")
       setLoading(true)
       
       // Try stats API first
       let response = await fetchWithAuth("/api/projects/stats")
-      console.log("Stats API response status:", response.status)
       
       if (response.ok) {
         const data = await response.json()
-        console.log("Projects data received:", data)
-        console.log("Projects array:", data.projects)
         if (data.projects && Array.isArray(data.projects)) {
-          console.log("Setting projects:", data.projects.map(p => ({
-            name: p.name,
-            test_cases_count: p.test_cases_count,
-            testers_count: p.testers_count,
-            executions_count: p.executions_count,
-            pass_rate: p.pass_rate
-          })))
           setProjects(data.projects)
-          console.log("Projects set successfully:", data.projects.length, "projects")
           return
         } else {
           console.error("Invalid projects data format:", data)
@@ -141,33 +128,34 @@ export default function ProjectSelectionDialog({
         console.error("Error response:", errorData)
       }
       
-      // Fallback to regular projects API
-      console.log("Falling back to regular projects API...")
-      response = await fetchWithAuth("/api/projects")
-      console.log("Regular API response status:", response.status)
+      // Fallback to role-specific API (same as project-selection-modal)
+      const fallbackEndpoint = user?.role === "admin" 
+        ? "/api/admin/projects" 
+        : "/api/tester/assigned-projects"
+      
+      response = await fetchWithAuth(fallbackEndpoint)
       
       if (response.ok) {
         const data = await response.json()
-        console.log("Fallback projects data:", data)
-        if (data.projects && Array.isArray(data.projects)) {
-          // Add default stats for fallback
-          const projectsWithStats = data.projects.map(p => ({
-            ...p,
-            test_cases_count: 0,
-            testers_count: 0,
-            executions_count: 0,
-            pass_rate: 0
-          }))
-          setProjects(projectsWithStats)
-          console.log("Fallback projects set:", projectsWithStats.length, "projects")
-        } else {
-          console.error("Invalid fallback projects data format:", data)
-          toast({
-            title: "Lỗi dữ liệu",
-            description: "Định dạng dữ liệu dự án không hợp lệ",
-            variant: "destructive",
-          })
+        
+        // Handle different response formats
+        let projectsData = []
+        if (Array.isArray(data)) {
+          projectsData = data
+        } else if (data.projects && Array.isArray(data.projects)) {
+          projectsData = data.projects
         }
+        
+        // Add default stats fields if missing
+        const projectsWithStats = projectsData.map(p => ({
+          ...p,
+          test_cases_count: p.test_cases_count || 0,
+          testers_count: p.testers_count || 0,
+          executions_count: p.executions_count || 0,
+          pass_rate: p.pass_rate || 0
+        }))
+        
+        setProjects(projectsWithStats)
       } else {
         const errorData = await response.text()
         console.error("Both APIs failed:", response.status, response.statusText)
@@ -191,7 +179,6 @@ export default function ProjectSelectionDialog({
   }
 
   const handleSelectProject = (projectId: string, projectName: string) => {
-    console.log("Project selected:", projectId, projectName)
     setSelectedProject(projectId)
     
     // Store the selected project in localStorage
@@ -395,11 +382,8 @@ export default function ProjectSelectionDialog({
 
   // Handle dialog open/close
   const handleOpenChange = (newOpen: boolean) => {
-    console.log("Dialog open change:", newOpen)
-    
     if (newOpen) {
       // Always allow opening and fetch projects
-      console.log("Dialog opening, fetching projects...")
       fetchProjects()
     }
     

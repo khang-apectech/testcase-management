@@ -1,6 +1,5 @@
 export async function getDbConnection() {
   try {
-    console.log("🔍 Getting database connection...")
     const { neon } = await import("@neondatabase/serverless")
 
     if (!process.env.DATABASE_URL) {
@@ -8,9 +7,7 @@ export async function getDbConnection() {
       throw new Error("DATABASE_URL environment variable is required")
     }
 
-    console.log("✅ Creating database connection...")
     const sql = neon(process.env.DATABASE_URL)
-    console.log("✅ Database connection created successfully")
     return sql
   } catch (error) {
     console.error("❌ Database connection error:", error)

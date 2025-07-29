@@ -80,15 +80,12 @@ export function TestProjectAssignment() {
 
     setLoading(true);
     try {
-      console.log('Assigning testers:', selectedTesters, 'to project:', selectedProject);
-      
       const response = await fetchWithAuth(`/api/projects/${selectedProject}/testers`, {
         method: 'POST',
         body: JSON.stringify({ testerIds: selectedTesters })
       });
 
       const responseData = await response.json();
-      console.log('Response:', responseData);
 
       if (response.ok) {
         toast({
@@ -120,15 +117,12 @@ export function TestProjectAssignment() {
     if (!selectedProject) return;
 
     try {
-      console.log('Removing tester:', testerId, 'from project:', selectedProject);
-      
       const response = await fetchWithAuth(`/api/projects/${selectedProject}/testers`, {
         method: 'DELETE',
         body: JSON.stringify({ testerIds: [testerId] })
       });
 
       const responseData = await response.json();
-      console.log('Remove response:', responseData);
 
       if (response.ok) {
         toast({

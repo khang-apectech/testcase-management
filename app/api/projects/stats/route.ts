@@ -6,12 +6,13 @@ import { getCurrentUser, getTokenFromRequest } from "@/lib/auth"
 export async function GET(req: NextRequest) {
   try {
     const token = getTokenFromRequest(req)
-    let user = await getCurrentUser(token)
+    const user = await getCurrentUser(token)
     
-    // For debugging: if no user, treat as admin
     if (!user) {
-      console.log("No user found, treating as admin for debugging")
-      user = { role: "admin", id: "debug" }
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      )
     }
     
     const sql = await getDbConnection()
@@ -19,34 +20,30 @@ export async function GET(req: NextRequest) {
     let projects: any[] = []
     
     if (user.role === "admin") {
-      // Admins can see all projects with stats
+      // Admins can see all projects with stats - using GROUP BY like admin API
       const result = await sql`
         SELECT 
-          p.*,
-          COALESCE(tc_stats.test_cases_count, 0) as test_cases_count,
-          COALESCE(upa_stats.testers_count, 0) as testers_count,
-          COALESCE(te_stats.executions_count, 0) as executions_count,
-          COALESCE(te_stats.pass_rate, 0) as pass_rate
+          p.id,
+          p.name,
+          p.description,
+          'active' as status,
+          p.created_at,
+          p.updated_at,
+          p.created_by,
+          p.updated_by,
+          COUNT(DISTINCT tc.id) as test_cases_count,
+          COUNT(DISTINCT upa.user_id) as testers_count,
+          COUNT(DISTINCT te.id) as executions_count,
+          COALESCE(
+            AVG(CASE WHEN te.cam_nhan = 'pass' THEN 1 WHEN te.cam_nhan = 'fail' THEN 0 END) * 100, 
+            0
+          ) as pass_rate
         FROM projects p
-        LEFT JOIN (
-          SELECT project_id, COUNT(*) as test_cases_count
-          FROM test_cases 
-          GROUP BY project_id
-        ) tc_stats ON p.id = tc_stats.project_id
-        LEFT JOIN (
-          SELECT project_id, COUNT(DISTINCT user_id) as testers_count
-          FROM user_project_access 
-          GROUP BY project_id
-        ) upa_stats ON p.id = upa_stats.project_id
-        LEFT JOIN (
-          SELECT 
-            tc.project_id,
-            COUNT(te.id) as executions_count,
-            AVG(CASE WHEN te.cam_nhan = 'pass' THEN 1 WHEN te.cam_nhan = 'fail' THEN 0 END) * 100 as pass_rate
-          FROM test_executions te
-          JOIN test_cases tc ON te.test_case_id = tc.id
-          GROUP BY tc.project_id
-        ) te_stats ON p.id = te_stats.project_id
+        LEFT JOIN test_cases tc ON p.id = tc.project_id
+        LEFT JOIN user_project_access upa ON p.id = upa.project_id
+        LEFT JOIN users u ON upa.user_id = u.id AND u.role = 'tester'
+        LEFT JOIN test_executions te ON te.test_case_id = tc.id
+        GROUP BY p.id, p.name, p.description, p.created_at, p.updated_at, p.created_by, p.updated_by
         ORDER BY p.name ASC
       `
       projects = result
@@ -54,32 +51,29 @@ export async function GET(req: NextRequest) {
       // Testers can only see projects they have access to with stats
       const result = await sql`
         SELECT 
-          p.*,
-          COALESCE(tc_stats.test_cases_count, 0) as test_cases_count,
-          COALESCE(upa_stats.testers_count, 0) as testers_count,
-          COALESCE(te_stats.executions_count, 0) as executions_count,
-          COALESCE(te_stats.pass_rate, 0) as pass_rate
+          p.id,
+          p.name,
+          p.description,
+          'active' as status,
+          p.created_at,
+          p.updated_at,
+          p.created_by,
+          p.updated_by,
+          COUNT(DISTINCT tc.id) as test_cases_count,
+          COUNT(DISTINCT upa_all.user_id) as testers_count,
+          COUNT(DISTINCT te.id) as executions_count,
+          COALESCE(
+            AVG(CASE WHEN te.cam_nhan = 'pass' THEN 1 WHEN te.cam_nhan = 'fail' THEN 0 END) * 100, 
+            0
+          ) as pass_rate,
+          COUNT(DISTINCT CASE WHEN te.tester_id = ${user.id} THEN tc.id END) as my_test_cases
         FROM projects p
         JOIN user_project_access upa ON p.id = upa.project_id AND upa.user_id = ${user.id}
-        LEFT JOIN (
-          SELECT project_id, COUNT(*) as test_cases_count
-          FROM test_cases 
-          GROUP BY project_id
-        ) tc_stats ON p.id = tc_stats.project_id
-        LEFT JOIN (
-          SELECT project_id, COUNT(DISTINCT user_id) as testers_count
-          FROM user_project_access 
-          GROUP BY project_id
-        ) upa_stats ON p.id = upa_stats.project_id
-        LEFT JOIN (
-          SELECT 
-            tc.project_id,
-            COUNT(te.id) as executions_count,
-            AVG(CASE WHEN te.cam_nhan = 'pass' THEN 1 WHEN te.cam_nhan = 'fail' THEN 0 END) * 100 as pass_rate
-          FROM test_executions te
-          JOIN test_cases tc ON te.test_case_id = tc.id
-          GROUP BY tc.project_id
-        ) te_stats ON p.id = te_stats.project_id
+        LEFT JOIN test_cases tc ON p.id = tc.project_id
+        LEFT JOIN user_project_access upa_all ON p.id = upa_all.project_id
+        LEFT JOIN users u ON upa_all.user_id = u.id AND u.role = 'tester'
+        LEFT JOIN test_executions te ON te.test_case_id = tc.id
+        GROUP BY p.id, p.name, p.description, p.created_at, p.updated_at, p.created_by, p.updated_by
         ORDER BY p.name ASC
       `
       projects = result

@@ -42,7 +42,6 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
     if (project && project.id) {
       // Only update if different from current selectedProject
       if (!selectedProject || selectedProject.id !== project.id) {
-        console.log('Syncing selectedProject with current project:', project)
         setSelectedProject({
           id: project.id,
           name: project.name
@@ -60,7 +59,6 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
       if (pathParts.length >= 3 && pathParts[1] === 'project') {
         pathParts[2] = selectedProject.id
         const newPath = pathParts.join('/')
-        console.log('Project selector changed, redirecting from', currentPath, 'to', newPath)
         router.push(newPath)
       }
     }

@@ -29,7 +29,6 @@ function LoginContent() {
   useEffect(() => {
     if (user) {
       const from = searchParams.get("from") || "/"
-      console.log("🔄 Login redirect to:", from);
       router.push(from)
     }
   }, [user, router, searchParams])
@@ -42,7 +41,6 @@ function LoginContent() {
       await login(email, password)
       // Redirect to original destination or home (will trigger project selection)
       const from = searchParams.get("from") || "/"
-      console.log("🚀 Login success, redirect to:", from);
       router.push(from)
       toast({
         title: "Thành công",

@@ -18,7 +18,6 @@ export function TesterListButton() {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("TesterListButton clicked - opening modal");
     setShowModal(true);
   };
 

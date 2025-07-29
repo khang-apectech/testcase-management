@@ -68,13 +68,10 @@ export default function TestCasePage({ params }: TestCasePageProps) {
   
   const fetchTestCases = async () => {
     try {
-      console.log('Fetching test cases for project:', projectId)
       const response = await fetchWithAuth(`/api/projects/${projectId}/test-cases`)
-      console.log('API response status:', response.status)
       
       if (response.ok) {
         const data = await response.json()
-        console.log('Test cases received:', data)
         setTestCases(data)
       } else {
         const errorData = await response.json()

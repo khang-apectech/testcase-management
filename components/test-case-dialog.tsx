@@ -48,13 +48,11 @@ export function TestCaseDialog({ onSuccess }: TestCaseDialogProps) {
       
       // Use selected project from context or localStorage
       if (selectedProject?.id) {
-        console.log("Using selected project from context:", selectedProject.id, selectedProject.name)
         setProjectId(selectedProject.id)
       } else {
         // Fallback to localStorage
         const storedProjectId = localStorage.getItem("selectedProjectId")
         if (storedProjectId) {
-          console.log("Using selected project from localStorage:", storedProjectId)
           setProjectId(storedProjectId)
         }
       }
@@ -68,17 +66,14 @@ export function TestCaseDialog({ onSuccess }: TestCaseDialogProps) {
       
       if (response.ok) {
         const data = await response.json()
-        console.log("Fetched projects:", data.projects)
         setProjects(data.projects)
         
         // If we have a selected project from context, make sure it exists in the projects list
         if (selectedProject?.id) {
           const projectExists = data.projects.some(p => p.id === selectedProject.id)
           if (projectExists) {
-            console.log("Selected project exists in projects list:", selectedProject.id)
             setProjectId(selectedProject.id)
           } else {
-            console.log("Selected project does not exist in projects list:", selectedProject.id)
             // If project doesn't exist, select the first one
             if (data.projects.length > 0) {
               setProjectId(data.projects[0].id)
@@ -91,7 +86,6 @@ export function TestCaseDialog({ onSuccess }: TestCaseDialogProps) {
           if (storedProjectId) {
             const projectExists = data.projects.some(p => p.id === storedProjectId)
             if (projectExists) {
-              console.log("Project from localStorage exists in projects list:", storedProjectId)
               setProjectId(storedProjectId)
             } else if (data.projects.length > 0) {
               setProjectId(data.projects[0].id)
@@ -135,8 +129,6 @@ export function TestCaseDialog({ onSuccess }: TestCaseDialogProps) {
     }
 
     try {
-      console.log("Creating test case for project:", projectId)
-      
       const response = await fetchWithAuth("/api/test-cases", {
         method: "POST",
         body: JSON.stringify({ 

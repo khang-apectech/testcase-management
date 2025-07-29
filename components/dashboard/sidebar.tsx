@@ -10,7 +10,7 @@ import { Icons } from "@/components/icons"
 import { UserNav } from "@/components/dashboard/user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useAuth } from "@/contexts/auth-context"
-import ProjectSelectionDialog from "@/components/project-selection-dialog"
+import { ProjectSelectionModal } from "@/components/project-selection-modal"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   projectId?: string
@@ -133,10 +133,22 @@ export function Sidebar({ className, projectId }: SidebarProps) {
 
   return (
     <div className={cn("pb-12", className)}>
-      {/* Project Selection Dialog */}
-      <ProjectSelectionDialog 
-        isOpen={showProjectDialog} 
-        onOpenChange={setShowProjectDialog} 
+      {/* Modal chào mừng khi ấn đổi dự án từ sidebar */}
+      <ProjectSelectionModal
+        isOpen={showProjectDialog}
+        onClose={() => {
+          setShowProjectDialog(false);
+        }}
+        onProjectSelected={(projectId: string) => {
+          setShowProjectDialog(false);
+          
+          // Navigate to project dashboard
+          setTimeout(() => {
+            const redirectPath = `/project/${projectId}/dashboard`;
+            window.location.href = redirectPath;
+          }, 100);
+        }}
+        userRole={user?.role || "tester"}
       />
       
       {/* Logo & Navigation */}

@@ -25,8 +25,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // Custom setter for selectedProject that also updates localStorage
   const updateSelectedProject = (project: { id: string; name: string } | null) => {
-    console.log("Updating selected project in context:", project)
-    
     if (project) {
       // Update localStorage
       localStorage.setItem("selectedProjectId", project.id)
@@ -112,7 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log("Sending login request...")
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -120,8 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({ email: email.trim(), password }),
       })
-
-      console.log("Login response status:", response.status)
 
       if (!response.ok) {
         let errorMessage = "Đăng nhập thất bại"
@@ -135,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const data = await response.json()
-      console.log("Login response data:", data)
 
       if (data.success && data.token && data.user) {
         localStorage.setItem("token", data.token)
